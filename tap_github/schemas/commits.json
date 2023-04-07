@@ -253,6 +253,15 @@
         }
       }
     },
+    "committer_email": {
+      "type": ["null", "string"]
+    },
+    "committer_id": {
+      "type": ["null", "integer"]
+    },
+    "committer_name": {
+      "type": ["null", "string"]
+    },
     "committer": {
       "$ref": "shared/user.json#/"
     },

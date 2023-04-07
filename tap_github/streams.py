@@ -27,7 +27,9 @@ def get_child_full_url(domain, child_object, repo_path, parent_id, grand_parent_
     Build the child stream's URL based on the parent and the grandparent's ids.
     """
 
-    if child_object.use_repository:
+    if child_object.no_path:
+        return
+    elif child_object.use_repository:
         # The `use_repository` represents that the url contains /repos and the repository name.
         child_full_url = '{}/repos/{}/{}'.format(
             domain,
@@ -68,6 +70,8 @@ class Stream:
     use_repository = False
     headers = {'Accept': '*/*'}
     parent = None
+    inherit_parent_fields = []
+    no_path = False
 
     def build_url(self, base_url, repo_path, bookmark):
         """
@@ -151,50 +155,71 @@ class Stream:
 
         child_full_url = get_child_full_url(client.base_url, child_object, repo_path, parent_id, grand_parent_id)
         stream_catalog = get_schema(catalog, child_object.tap_stream_id)
+        if child_full_url is not None:
+            with metrics.record_counter(child_object.tap_stream_id) as counter:
+                for response in client.authed_get_all_pages(
+                    child_object.tap_stream_id,
+                    child_full_url,
+                    stream = child_object.tap_stream_id
+                ):
+                    records = response.json()
+                    extraction_time = singer.utils.now()
 
-        with metrics.record_counter(child_object.tap_stream_id) as counter:
-            for response in client.authed_get_all_pages(
-                child_object.tap_stream_id,
-                child_full_url,
-                stream = child_object.tap_stream_id
-            ):
-                records = response.json()
-                extraction_time = singer.utils.now()
+                    if isinstance(records, list):
+                        # Loop through all the records of response
+                        for record in records:
+                            record['_sdc_repository'] = repo_path
+                            child_object.add_fields_at_1st_level(record = record, parent_record = parent_record)
 
-                if isinstance(records, list):
-                    # Loop through all the records of response
-                    for record in records:
-                        record['_sdc_repository'] = repo_path
-                        child_object.add_fields_at_1st_level(record = record, parent_record = parent_record)
+                            with singer.Transformer() as transformer:
+
+                                rec = transformer.transform(record, stream_catalog['schema'], metadata=metadata.to_map(stream_catalog['metadata']))
+
+                                if child_object.tap_stream_id in selected_stream_ids and record.get(child_object.replication_keys, start_date) >= child_bookmark_value:
+                                    singer.write_record(child_object.tap_stream_id, rec, time_extracted=extraction_time)
+                                    counter.increment()
+
+                            # Loop thru each child and nested child in the parent and fetch all the child records.
+                            for nested_child in child_object.children:
+                                if nested_child in stream_to_sync:
+                                    # Collect id of child record to pass in the API of its sub-child.
+                                    child_id = tuple(record.get(key) for key in STREAMS[nested_child]().id_keys)
+                                    # Here, grand_parent_id is the id of 1st level parent(main parent) which is required to
+                                    # pass in the API of the current child's sub-child.
+                                    child_object.get_child_records(client, catalog, nested_child, child_id, repo_path, state, start_date, bookmark_dttm, stream_to_sync, selected_stream_ids, grand_parent_id, record)
+
+                    else:
+                        # Write JSON response directly if it is a single record only.
+                        records['_sdc_repository'] = repo_path
+                        child_object.add_fields_at_1st_level(record = records, parent_record = parent_record)
 
                         with singer.Transformer() as transformer:
 
-                            rec = transformer.transform(record, stream_catalog['schema'], metadata=metadata.to_map(stream_catalog['metadata']))
+                            rec = transformer.transform(records, stream_catalog['schema'], metadata=metadata.to_map(stream_catalog['metadata']))
+                            if child_object.tap_stream_id in selected_stream_ids and records.get(child_object.replication_keys, start_date) >= child_bookmark_value :
 
-                            if child_object.tap_stream_id in selected_stream_ids and record.get(child_object.replication_keys, start_date) >= child_bookmark_value:
                                 singer.write_record(child_object.tap_stream_id, rec, time_extracted=extraction_time)
-                                counter.increment()
+        elif child_object.no_path:
+            extraction_time = singer.utils.now()
+            record = {}
+            for field in child_object.inherit_parent_fields:
+                record[field] = parent_record.get(field)
+            with singer.Transformer() as transformer:
 
-                        # Loop thru each child and nested child in the parent and fetch all the child records.
-                        for nested_child in child_object.children:
-                            if nested_child in stream_to_sync:
-                                # Collect id of child record to pass in the API of its sub-child.
-                                child_id = tuple(record.get(key) for key in STREAMS[nested_child]().id_keys)
-                                # Here, grand_parent_id is the id of 1st level parent(main parent) which is required to
-                                # pass in the API of the current child's sub-child.
-                                child_object.get_child_records(client, catalog, nested_child, child_id, repo_path, state, start_date, bookmark_dttm, stream_to_sync, selected_stream_ids, grand_parent_id, record)
+                rec = transformer.transform(record, stream_catalog['schema'], metadata=metadata.to_map(stream_catalog['metadata']))
 
-                else:
-                    # Write JSON response directly if it is a single record only.
-                    records['_sdc_repository'] = repo_path
-                    child_object.add_fields_at_1st_level(record = records, parent_record = parent_record)
+                if child_object.tap_stream_id in selected_stream_ids:
+                    singer.write_record(child_object.tap_stream_id, rec, time_extracted=extraction_time)
+                    counter.increment()
 
-                    with singer.Transformer() as transformer:
-
-                        rec = transformer.transform(records, stream_catalog['schema'], metadata=metadata.to_map(stream_catalog['metadata']))
-                        if child_object.tap_stream_id in selected_stream_ids and records.get(child_object.replication_keys, start_date) >= child_bookmark_value :
-
-                            singer.write_record(child_object.tap_stream_id, rec, time_extracted=extraction_time)
+            # Loop thru each child and nested child in the parent and fetch all the child records.
+            for nested_child in child_object.children:
+                if nested_child in stream_to_sync:
+                    # Collect id of child record to pass in the API of its sub-child.
+                    child_id = tuple(record.get(key) for key in STREAMS[nested_child]().id_keys)
+                    # Here, grand_parent_id is the id of 1st level parent(main parent) which is required to
+                    # pass in the API of the current child's sub-child.
+                    child_object.get_child_records(client, catalog, nested_child, child_id, repo_path, state, start_date, bookmark_dttm, stream_to_sync, selected_stream_ids, grand_parent_id, record)
 
     # pylint: disable=unnecessary-pass
     def add_fields_at_1st_level(self, record, parent_record = None):
@@ -618,6 +643,7 @@ class Commits(IncrementalStream):
     replication_keys = "updated_at"
     key_properties = ["sha"]
     path = "commits"
+    children= ["user_email"]
     filter_param = True
 
     def add_fields_at_1st_level(self, record, parent_record = None):
@@ -625,6 +651,21 @@ class Commits(IncrementalStream):
         Add fields in the record explicitly at the 1st level of JSON.
         """
         record['updated_at'] = record['commit']['committer']['date']
+        record['comitter_email'] = record['commit']['committer']['email']
+        record['committer_id'] = record['commit']['committer']['id']
+        record['committer_name'] = record['commit']['committer']['name']
+        record['committer_login'] = record['commit']['committer']['login']
+
+class UserEmail(IncrementalStream):
+    '''
+    https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28
+    '''
+    tap_stream_id = "user_email"
+    replication_method = "INCREMENTAL"
+    key_properties = ["comitter_email"]
+    id_keys = ['committer_login']
+    no_path = True
+    inherit_parent_fields = ["comitter_email","committer_id","committer_name","committer_login"]
 
 class Comments(IncrementalOrderedStream):
     '''
@@ -780,5 +821,6 @@ STREAMS = {
     "team_members": TeamMembers,
     "team_memberships": TeamMemberships,
     "collaborators": Collaborators,
-    "stargazers": StarGazers
+    "stargazers": StarGazers,
+    "user_email": UserEmail
 }
