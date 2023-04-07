@@ -1,5 +1,8 @@
 # Changelog
 
+# 2.1.0
+  * Add repositories table
+
 # 2.0.0
   * Schema updates [#170](https://github.com/singer-io/tap-github/pull/170) [#169](https://github.com/singer-io/tap-github/pull/169)
     * Update data types of fields in `events` and `issue_events` stream

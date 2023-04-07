@@ -740,9 +740,24 @@ class StarGazers(FullTableStream):
         """
         record['user_id'] = record['user']['id']
 
+class Repositories(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
+    '''
+    tap_stream_id = "repositories"
+    replication_method = "FULL_TABLE"
+    key_properties = ["id"]
+    path = "repos"
+
+    def add_fields_at_1st_level(self, record, parent_record = None):
+        """
+        Add fields in the record explicitly at the 1st level of JSON.
+        """
+        record['owner_id'] = record['owner']['id']
 
 # Dictionary of the stream classes
 STREAMS = {
+    "repositories": Repositories,
     "commits": Commits,
     "comments": Comments,
     "issues": Issues,
