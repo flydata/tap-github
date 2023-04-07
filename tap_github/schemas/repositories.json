@@ -188,34 +188,25 @@
           "advanced_security": {
             "type": ["null", "object"],
             "properties": {
-              "type": ["null", "object"],
-              "properties": {
                 "status": {
-                  "type": ["null", "string"]
+                    "type": ["null", "string"]
                 }
-              }
             }
           },
           "secret_scanning": {
             "type": ["null", "object"],
             "properties": {
-              "type": ["null", "object"],
-              "properties": {
                 "status": {
                   "type": ["null", "string"]
                 }
-              }
             }
           },
           "secret_scanning_push_protection": {
             "type": ["null", "object"],
             "properties": {
-              "type": ["null", "object"],
-              "properties": {
                 "status": {
                   "type": ["null", "string"]
                 }
-              }
             }
           }
         }

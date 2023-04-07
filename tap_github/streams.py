@@ -747,7 +747,8 @@ class Repositories(FullTableStream):
     tap_stream_id = "repositories"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
-    path = "repos"
+    use_organization = True
+    path = "orgs/{}/repos"
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
