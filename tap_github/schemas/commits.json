@@ -7,15 +7,6 @@
     "node_id": {
       "type": ["null", "string"]
     },
-    "pr_id": {
-      "type": ["null", "string"]
-    },
-    "pr_number": {
-      "type": ["null", "integer"]
-    },
-    "id": {
-      "type": ["null", "string"]
-    },
     "updated_at": {
       "type": ["null", "string"],
       "format": "date-time"
@@ -24,6 +15,9 @@
       "type": ["null", "string"]
     },
     "url": {
+      "type": ["null", "string"]
+    },
+    "message": {
       "type": ["null", "string"]
     },
     "parents": {
@@ -253,11 +247,14 @@
         }
       }
     },
-    "committer_email": {
+    "author_email": {
       "type": ["null", "string"]
     },
-    "committer_id": {
-      "type": ["null", "integer"]
+    "author_name": {
+      "type": ["null", "string"]
+    },
+    "committer_email": {
+      "type": ["null", "string"]
     },
     "committer_name": {
       "type": ["null", "string"]

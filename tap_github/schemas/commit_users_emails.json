@@ -1,13 +1,16 @@
 {
     "type": ["null", "object"],
     "properties": {
-        "committer_email": {
+        "email": {
             "type": ["null", "string"]
         },
-        "committer_id": {
+        "id": {
             "type": ["null", "integer"]
         },
-        "committer_name": {
+        "name": {
+            "type": ["null", "string"]
+        },
+        "username": {
             "type": ["null", "string"]
         }
     }
