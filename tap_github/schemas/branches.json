@@ -102,7 +102,7 @@
                                 "teams": {
                                     "type": ["null", "array"],
                                     "items": {
-                                        "$ref": "teams.json#/"
+                                        "$ref": "shared/teams.json#/"
                                     }
                                 },
                                 "apps": {
@@ -191,7 +191,7 @@
                                 "teams": {
                                     "type": ["null", "array"],
                                     "items": {
-                                        "$ref": "teams.json#/"
+                                        "$ref": "shared/teams.json#/"
                                     }
                                 },
                                 "apps": {
@@ -285,7 +285,7 @@
                         "teams": {
                             "type": ["null", "array"],
                             "items": {
-                                "$ref": "teams.json#/"
+                                "$ref": "shared/teams.json#/"
                             }
                         },
                         "apps": {
