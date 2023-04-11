@@ -659,7 +659,7 @@ class Commits(IncrementalStream):
     replication_keys = "updated_at"
     key_properties = ["sha"]
     path = "commits"
-    children= ["commit_users_emails"]
+    children= ["commit_users_emails", "commit_files", "commit_parents"]
     filter_param = True
 
     def add_fields_at_1st_level(self, record, parent_record = None):
@@ -676,6 +676,30 @@ class Commits(IncrementalStream):
         record['author_login'] = self.get_field(record,['author','login'])
         record['committer_email'] = self.get_field(record,['commit','committer','email'])
         record['committer_name'] = self.get_field(record,['commit','committer','name'])
+
+class CommitFiles(IncrementalStream):
+    '''
+    https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
+    '''
+    tap_stream_id = "commit_files"
+    replication_method = "INCREMENTAL"
+    replication_keys = "updated_at"
+    key_properties = ["commit_sha", "filename"]
+    no_path = True
+    inherit_parent_fields = [("commit_sha","sha"), ("_sdc_repository","_sdc_repository")]
+    inherit_array_parent_fields = "files"
+
+class CommitParents(IncrementalStream):
+    '''
+    https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
+    '''
+    tap_stream_id = "commit_parents"
+    replication_method = "INCREMENTAL"
+    replication_keys = "updated_at"
+    key_properties = ["child_sha","sha"]
+    no_path = True
+    inherit_parent_fields = [("children_sha","sha"), ("_sdc_repository","_sdc_repository")]
+    inherit_array_parent_fields = "parents"
 
 
 class UserEmail(IncrementalStream):
@@ -862,6 +886,8 @@ class Repositories(FullTableStream):
 STREAMS = {
     "repositories": Repositories,
     "commits": Commits,
+    "commit_files": CommitFiles,
+    "commit_parents": CommitParents,
     "comments": Comments,
     "issues": Issues,
     "assignees": Assignees,
