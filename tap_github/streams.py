@@ -202,6 +202,7 @@ class Stream:
                                 singer.write_record(child_object.tap_stream_id, rec, time_extracted=extraction_time)
             elif child_object.no_path:
                 records = []
+                extraction_time = singer.utils.now()
                 if child_object.inherit_array_parent_fields: 
                     for record in parent_record.get(child_object.inherit_array_parent_fields):
                         records.append(record)
@@ -751,6 +752,21 @@ class ReleaseAssets(FullTableStream):
         if not record: return
         record['uploader_id'] = self.get_field(record,['uploader','id'])
 
+class Branches(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/branches/branches#list-branches
+    '''
+    tap_stream_id = "branches"
+    replication_method = "FULL_TABLE"
+    key_properties = ["name"]
+    path = "branches"
+
+    def add_fields_at_1st_level(self, record, parent_record = None):
+        """
+        Add fields in the record explicitly at the 1st level of JSON.
+        """
+        if not record: return
+        record['commit_sha'] = self.get_field(record,['commit','sha'])
 class IssueLabels(FullTableStream):
     '''
     https://docs.github.com/en/rest/issues/labels#list-labels-for-a-repository
@@ -851,6 +867,7 @@ STREAMS = {
     "assignees": Assignees,
     "releases": Releases,
     "release_assets": ReleaseAssets,
+    "branches": Branches,
     "issue_labels": IssueLabels,
     "issue_events": IssueEvents,
     "events": Events,
