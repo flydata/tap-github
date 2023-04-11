@@ -659,7 +659,7 @@ class Commits(IncrementalStream):
     replication_keys = "updated_at"
     key_properties = ["sha"]
     path = "commits"
-    children= ["commit_users_emails", "commit_files", "commit_parents"]
+    children= ["commit_users_emails", "commit_files", "commit_parents", "commit_pull_request"]
     filter_param = True
 
     def add_fields_at_1st_level(self, record, parent_record = None):
@@ -700,6 +700,26 @@ class CommitParents(IncrementalStream):
     no_path = True
     inherit_parent_fields = [("children_sha","sha"), ("_sdc_repository","_sdc_repository")]
     inherit_array_parent_fields = "parents"
+
+class CommitPullRequest(IncrementalStream):
+    '''
+    https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
+    '''
+    tap_stream_id = "commit_pull_request"
+    replication_method = "INCREMENTAL"
+    replication_keys = "updated_at"
+    key_properties = ["commit_sha","pull_request_id"]
+    path = "commits/{}/pulls"
+    id_keys = ["sha"]
+    inherit_parent_fields = [("commit_sha","sha"), ("_sdc_repository","_sdc_repository")]
+
+    def add_fields_at_1st_level(self, record, parent_record = None):
+        """
+        Add fields in the record explicitly at the 1st level of JSON.
+        """
+        if not record: return
+        record['pull_request_id'] = self.get_field(record,['id'])
+
 
 
 class UserEmail(IncrementalStream):
@@ -888,6 +908,7 @@ STREAMS = {
     "commits": Commits,
     "commit_files": CommitFiles,
     "commit_parents": CommitParents,
+    "commit_pull_request": CommitPullRequest,
     "comments": Comments,
     "issues": Issues,
     "assignees": Assignees,
