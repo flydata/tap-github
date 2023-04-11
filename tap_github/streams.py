@@ -728,7 +728,7 @@ class Releases(FullTableStream):
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
     path = "releases?sort=created_at&direction=desc"
-    chldren = ["release_assets"]
+    children = ["release_assets"]
 
 class ReleaseAssets(FullTableStream):
     '''
@@ -740,9 +740,9 @@ class ReleaseAssets(FullTableStream):
     use_repository = True
     id_keys = ["id"]
     no_path = True
-    inherit_parent_fields = [("release_id","id")]
+    inherit_parent_fields = [("release_id","id"), ("_sdc_repository","_sdc_repository")]
     inherit_array_parent_fields = "assets"
-    parent = 'commits'
+    parent = 'releases'
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
