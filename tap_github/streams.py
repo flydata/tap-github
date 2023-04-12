@@ -72,6 +72,7 @@ class Stream:
     parent = None
     inherit_parent_fields = []
     inherit_array_parent_fields = ""
+    custom_column_name = ""
     no_path = False
 
     def build_url(self, base_url, repo_path, bookmark):
@@ -207,7 +208,10 @@ class Stream:
                 extraction_time = singer.utils.now()
                 if child_object.inherit_array_parent_fields: 
                     for record in parent_record.get(child_object.inherit_array_parent_fields,[]):
-                        records.append(record)
+                        if col_name := child_object.custom_column_name: 
+                            records.append({col_name: record})
+                        else:
+                            records.append(record)
                 else: records.append({})
                 for record in records:
                     for column, field in child_object.inherit_parent_fields:
@@ -934,6 +938,8 @@ class Repositories(FullTableStream):
     key_properties = ["id"]
     use_organization = True
     path = "orgs/{}/repos"
+    children = ["repository_topics"]
+    has_children = True
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
@@ -950,6 +956,19 @@ class RepositoryTeams(FullTableStream):
     replication_method = "FULL_TABLE"
     key_properties = ["_sdc_repository","id"]
     path = "teams"
+
+class RepositoryTopics(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/repos/repos#list-repository-teams
+    '''
+    tap_stream_id = "repository_topics"
+    replication_method = "FULL_TABLE"
+    key_properties = ["repository","topic"]
+    no_path = True
+    inherit_parent_fields = [("repository","full_name")]
+    inherit_array_parent_fields = "topics"
+    custom_column_name = "topic"
+    parent = 'repositories'
 
 class Deployments(FullTableStream):
     '''
@@ -993,6 +1012,7 @@ class DeploymentStatuses(FullTableStream):
 STREAMS = {
     "repositories": Repositories,
     "repository_teams": RepositoryTeams,
+    "repository_topics": RepositoryTopics,
     "commits": Commits,
     "commit_files": CommitFiles,
     "commit_parents": CommitParents,
