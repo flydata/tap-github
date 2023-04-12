@@ -170,6 +170,8 @@ class Stream:
                         # Loop through all the records of response
                         for record in records:
                             record['_sdc_repository'] = repo_path
+                            for column, field in child_object.inherit_parent_fields:
+                                record[column] = parent_record.get(field)
                             child_object.add_fields_at_1st_level(record = record, parent_record = parent_record)
 
                             with singer.Transformer() as transformer:
@@ -383,7 +385,8 @@ class IncrementalStream(Stream):
                                                                 start_date,
                                                                 record.get(self.replication_keys),
                                                                 stream_to_sync,
-                                                                selected_stream_ids)
+                                                                selected_stream_ids,
+                                                                parent_record = record)
                         else:
                             LOGGER.warning("Skipping this record for %s stream with %s = %s as it is missing replication key %s.",
                                         self.tap_stream_id, self.key_properties, record[self.key_properties], self.replication_keys)
@@ -688,6 +691,7 @@ class CommitFiles(IncrementalStream):
     no_path = True
     inherit_parent_fields = [("commit_sha","sha"), ("_sdc_repository","_sdc_repository")]
     inherit_array_parent_fields = "files"
+    parent = 'commits'
 
 class CommitParents(IncrementalStream):
     '''
@@ -700,6 +704,7 @@ class CommitParents(IncrementalStream):
     no_path = True
     inherit_parent_fields = [("children_sha","sha"), ("_sdc_repository","_sdc_repository")]
     inherit_array_parent_fields = "parents"
+    parent = 'commits'
 
 class CommitPullRequest(IncrementalStream):
     '''
@@ -710,8 +715,10 @@ class CommitPullRequest(IncrementalStream):
     replication_keys = "updated_at"
     key_properties = ["commit_sha","pull_request_id"]
     path = "commits/{}/pulls"
+    use_repository = True
     id_keys = ["sha"]
     inherit_parent_fields = [("commit_sha","sha"), ("_sdc_repository","_sdc_repository")]
+    parent = 'commits'
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
