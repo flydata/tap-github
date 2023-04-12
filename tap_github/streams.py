@@ -559,6 +559,7 @@ class PullRequests(IncrementalOrderedStream):
     key_properties = ["id"]
     path = "pulls?state=all&sort=updated&direction=desc"
     children = ['reviews', 'review_comments', 'pr_commits']
+    has_children = True
     pk_child_fields = ["number"]
 
 class ProjectCards(IncrementalStream):
@@ -599,6 +600,7 @@ class Projects(IncrementalStream):
     path = "projects?state=all"
     tap_stream_id = "projects"
     children = ["project_columns"]
+    has_children = True
     child_objects = [ProjectColumns()]
 
 class TeamMemberships(FullTableStream):
@@ -651,6 +653,7 @@ class Teams(FullTableStream):
     path = "orgs/{}/teams"
     use_organization = True
     children = ["team_members"]
+    has_children = True
     pk_child_fields = ['slug']
 
 class Commits(IncrementalStream):
@@ -663,6 +666,7 @@ class Commits(IncrementalStream):
     key_properties = ["sha"]
     path = "commits"
     children= ["commit_users_emails", "commit_files", "commit_parents", "commit_pull_request"]
+    has_children = True
     filter_param = True
 
     def add_fields_at_1st_level(self, record, parent_record = None):
@@ -762,6 +766,21 @@ class Issues(IncrementalOrderedStream):
     key_properties = ["id"]
     filter_param = True
     path = "issues?state=all&sort=updated&direction=desc"
+    children = ["issue_assignees"]
+    has_children = True
+
+class IssueAssignees(IncrementalOrderedStream):
+    '''
+    https://docs.github.com/en/rest/issues/issues#list-repository-issues
+    '''
+    tap_stream_id = "issue_assignees"
+    replication_method = "INCREMENTAL"
+    replication_keys = "updated_at"
+    key_properties = ["issue_id","id"]
+    no_path = True
+    inherit_parent_fields = [("issue_id","id"), ("_sdc_repository","_sdc_repository")]
+    inherit_array_parent_fields = "assignees"
+    parent = 'issues'
 
 class Assignees(FullTableStream):
     '''
@@ -781,6 +800,7 @@ class Releases(FullTableStream):
     key_properties = ["id"]
     path = "releases?sort=created_at&direction=desc"
     children = ["release_assets"]
+    has_children = True
 
 class ReleaseAssets(FullTableStream):
     '''
@@ -918,6 +938,7 @@ class Deployments(FullTableStream):
     key_properties = ["id"]
     path = "deployments?sort=created_at&direction=desc"
     children = ["deployment_statuses"]
+    has_children = True
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
@@ -936,7 +957,7 @@ class DeploymentStatuses(FullTableStream):
     key_properties = ["deployment_id","id"]
     path = "deployments/{}/statuses"
     id_keys = ["id"]
-    inherit_parent_fields = [("deployment_id","id")]
+    inherit_parent_fields = [("deployment_id","id"),("_sdc_repository","_sdc_repository")]
     parent = 'deployments'
 
     def add_fields_at_1st_level(self, record, parent_record = None):

@@ -57,12 +57,6 @@
     "assignee": {
       "$ref": "shared/user.json#/"
     },
-    "assignees": {
-      "type": ["null", "array"],
-      "items": {
-        "$ref": "shared/user.json#/"
-      }
-    },
     "milestone": {
       "type": ["null", "object"],
         "properties": {
