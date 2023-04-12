@@ -766,7 +766,7 @@ class Issues(IncrementalOrderedStream):
     key_properties = ["id"]
     filter_param = True
     path = "issues?state=all&sort=updated&direction=desc"
-    children = ["issue_assignees"]
+    children = ["issue_assignees","issue_labels"]
     has_children = True
 
 class IssueAssignees(IncrementalOrderedStream):
@@ -780,6 +780,19 @@ class IssueAssignees(IncrementalOrderedStream):
     no_path = True
     inherit_parent_fields = [("issue_id","id"), ("_sdc_repository","_sdc_repository")]
     inherit_array_parent_fields = "assignees"
+    parent = 'issues'
+
+class IssueLabels(IncrementalOrderedStream):
+    '''
+    https://docs.github.com/en/rest/issues/issues#list-repository-issues
+    '''
+    tap_stream_id = "issue_labels"
+    replication_method = "INCREMENTAL"
+    replication_keys = "updated_at"
+    key_properties = ["issue_id","id"]
+    no_path = True
+    inherit_parent_fields = [("issue_id","id"), ("_sdc_repository","_sdc_repository")]
+    inherit_array_parent_fields = "labels"
     parent = 'issues'
 
 class Assignees(FullTableStream):
@@ -838,11 +851,11 @@ class Branches(FullTableStream):
         """
         if not record: return
         record['commit_sha'] = self.get_field(record,['commit','sha'])
-class IssueLabels(FullTableStream):
+class Labels(FullTableStream):
     '''
     https://docs.github.com/en/rest/issues/labels#list-labels-for-a-repository
     '''
-    tap_stream_id = "issue_labels"
+    tap_stream_id = "labels"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
     path = "labels"
@@ -976,11 +989,13 @@ STREAMS = {
     "commit_pull_request": CommitPullRequest,
     "comments": Comments,
     "issues": Issues,
+    "issue_assignees": IssueAssignees,
+    "issue_labels": IssueLabels,
     "assignees": Assignees,
     "releases": Releases,
     "release_assets": ReleaseAssets,
     "branches": Branches,
-    "issue_labels": IssueLabels,
+    "labels": Labels,
     "issue_events": IssueEvents,
     "events": Events,
     "commit_comments": CommitComments,
