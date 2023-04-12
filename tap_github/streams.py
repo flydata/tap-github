@@ -909,6 +909,22 @@ class Repositories(FullTableStream):
         if not record: return
         record['owner_id'] = self.get_field(record,['owner','id'])
 
+class Deployments(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/deployments/deployments#list-deployments
+    '''
+    tap_stream_id = "deployments"
+    replication_method = "FULL_TABLE"
+    key_properties = ["id"]
+    path = "deployments"
+
+    def add_fields_at_1st_level(self, record, parent_record = None):
+        """
+        Add fields in the record explicitly at the 1st level of JSON.
+        """
+        if not record: return
+        record['creator_id'] = self.get_field(record,['creator','id'])
+
 # Dictionary of the stream classes
 STREAMS = {
     "repositories": Repositories,
@@ -940,4 +956,5 @@ STREAMS = {
     "collaborators": Collaborators,
     "stargazers": StarGazers,
     "commit_users_emails": UserEmail,
+    "deployments": Deployments,
 }
