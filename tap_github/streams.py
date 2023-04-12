@@ -206,7 +206,7 @@ class Stream:
                 records = []
                 extraction_time = singer.utils.now()
                 if child_object.inherit_array_parent_fields: 
-                    for record in parent_record.get(child_object.inherit_array_parent_fields):
+                    for record in parent_record.get(child_object.inherit_array_parent_fields,[]):
                         records.append(record)
                 else: records.append({})
                 for record in records:
@@ -700,7 +700,7 @@ class CommitParents(IncrementalStream):
     tap_stream_id = "commit_parents"
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
-    key_properties = ["child_sha","sha"]
+    key_properties = ["children_sha","sha"]
     no_path = True
     inherit_parent_fields = [("children_sha","sha"), ("_sdc_repository","_sdc_repository")]
     inherit_array_parent_fields = "parents"
