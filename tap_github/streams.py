@@ -916,7 +916,28 @@ class Deployments(FullTableStream):
     tap_stream_id = "deployments"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
-    path = "deployments"
+    path = "deployments?sort=created_at&direction=desc"
+    children = ["deployment_statuses"]
+
+    def add_fields_at_1st_level(self, record, parent_record = None):
+        """
+        Add fields in the record explicitly at the 1st level of JSON.
+        """
+        if not record: return
+        record['creator_id'] = self.get_field(record,['creator','id'])
+
+class DeploymentStatuses(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/deployments/statuses#list-deployment-statuses
+    '''
+    tap_stream_id = "deployment_statuses"
+    replication_method = "FULL_TABLE"
+    use_repository = True
+    key_properties = ["deployment_id","id"]
+    path = "deployments/{}/statuses"
+    id_keys = ["id"]
+    inherit_parent_fields = [("deployment_id","id")]
+    parent = 'deployments'
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
@@ -957,4 +978,6 @@ STREAMS = {
     "stargazers": StarGazers,
     "commit_users_emails": UserEmail,
     "deployments": Deployments,
+    "deployment_statuses": DeploymentStatuses,
+
 }

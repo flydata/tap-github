@@ -13,25 +13,7 @@
         "node_id": {
           "type": ["null", "string"]
         },
-        "sha": {
-          "type": ["null", "string"]
-        },
-        "ref": {
-          "type": ["null", "string"]
-        },
-        "task": {
-          "type": ["null", "string"]
-        },
-        "payload": {
-          "type": ["null", "object", "string"]
-        },
-        "original_environment": {
-          "type": ["null", "string"]
-        },
-        "environment": {
-          "type": ["null", "string"]
-        },
-        "description": {
+        "state": {
           "type": ["null", "string"]
         },
         "creator_id": {
@@ -39,6 +21,15 @@
         },
         "creator": {
           "$ref": "shared/user.json#/"
+        },
+        "description": {
+          "type": ["null", "string"]
+        },
+        "environment": {
+          "type": ["null", "string"]
+        },
+        "target_url": {
+          "type": ["null", "string"]
         },
         "created_at": {
             "type": ["null", "string"],
@@ -48,17 +39,17 @@
             "type": ["null", "string"],
             "format": "date-time"
         },
-        "statuses_url": {
+        "deployment_url": {
           "type": ["null", "string"]
         },
         "repository_url": {
           "type": ["null", "string"]
         },
-        "transient_environment": {
-          "type": ["null", "boolean"]
+        "environment_url": {
+          "type": ["null", "string"]
         },
-        "production_environment": {
-          "type": ["null", "boolean"]
+        "log_url": {
+          "type": ["null", "string"]
         },
         "performed_via_github_app": {
           "$ref": "shared/app.json#/"
