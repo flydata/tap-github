@@ -63,6 +63,7 @@ class Stream:
     key_properties = []
     path = None
     filter_param = False
+    filter_param_custom = ""
     id_keys = []
     use_organization = False
     children = []
@@ -83,6 +84,9 @@ class Stream:
         if self.filter_param:
             # Add the since parameter for incremental streams
             query_string = '?since={}'.format(bookmark)
+        elif self.filter_param_custom:
+            # Add additional custom filter for incremental streams
+            query_string = f'?{self.filter_param_custom}{bookmark}'
         else:
             query_string = ''
 
@@ -1024,16 +1028,18 @@ class Workflows(FullTableStream):
     path = "actions/workflows"
     result_path = "workflows"
 
-class WorkflowRuns(FullTableStream):
+class WorkflowRuns(IncrementalStream):
     '''
     https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#list-repository-workflows
     '''
     tap_stream_id = "workflow_runs"
-    replication_method = "FULL_TABLE"
+    replication_method = "INCREMENTAL"
+    replication_keys = "updated_at"
     use_repository = True
     key_properties = ["id"]
     path = "actions/runs"
     result_path = "workflow_runs"
+    filter_param_custom = "created:>="
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
