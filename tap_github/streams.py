@@ -74,6 +74,7 @@ class Stream:
     inherit_array_parent_fields = ""
     custom_column_name = ""
     no_path = False
+    result_path = ""
 
     def build_url(self, base_url, repo_path, bookmark):
         """
@@ -165,6 +166,7 @@ class Stream:
                     stream = child_object.tap_stream_id
                 ):
                     records = response.json()
+                    if child_object.result_path: records = records.get(child_object.result_path,[])
                     extraction_time = singer.utils.now()
 
                     if isinstance(records, list):
@@ -278,6 +280,7 @@ class FullTableStream(Stream):
                     stream = self.tap_stream_id
             ):
                 records = response.json()
+                if self.result_path: records = records.get(self.result_path,[])
                 extraction_time = singer.utils.now()
                 # Loop through all records
                 for record in records:
@@ -350,6 +353,7 @@ class IncrementalStream(Stream):
                     stream = self.tap_stream_id
             ):
                 records = response.json()
+                if self.result_path: records = records.get(self.result_path,[])
                 extraction_time = singer.utils.now()
                 # Loop through all records
                 for record in records:
@@ -435,6 +439,7 @@ class IncrementalOrderedStream(Stream):
                     stream = self.tap_stream_id
             ):
                 records = response.json()
+                if self.result_path: records = records.get(self.result_path,[])
                 extraction_time = singer.utils.now()
                 for record in records:
                     record['_sdc_repository'] = repo_path
@@ -1008,6 +1013,37 @@ class DeploymentStatuses(FullTableStream):
         if not record: return
         record['creator_id'] = self.get_field(record,['creator','id'])
 
+class Workflows(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#list-repository-workflows
+    '''
+    tap_stream_id = "workflows"
+    replication_method = "FULL_TABLE"
+    use_repository = True
+    key_properties = ["id"]
+    path = "actions/workflows"
+    result_path = "workflows"
+
+class WorkflowRuns(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#list-repository-workflows
+    '''
+    tap_stream_id = "workflow_runs"
+    replication_method = "FULL_TABLE"
+    use_repository = True
+    key_properties = ["id"]
+    path = "actions/runs"
+    result_path = "workflow_runs"
+
+    def add_fields_at_1st_level(self, record, parent_record = None):
+        """
+        Add fields in the record explicitly at the 1st level of JSON.
+        """
+        if not record: return
+        record['actor_id'] = self.get_field(record,['actor','id'])
+        record['triggering_actor_id'] = self.get_field(record,['triggering_actor','id'])
+        record['repository_id'] = self.get_field(record,['repository','id'])
+
 # Dictionary of the stream classes
 STREAMS = {
     "repositories": Repositories,
@@ -1045,5 +1081,6 @@ STREAMS = {
     "commit_users_emails": UserEmail,
     "deployments": Deployments,
     "deployment_statuses": DeploymentStatuses,
-
+    "workflows": Workflows,
+    "workflow_runs": WorkflowRuns
 }

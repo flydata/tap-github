@@ -1,0 +1,251 @@
+{
+    "type": ["null", "object"],
+    "properties": {
+      "_sdc_repository": {
+        "type": ["null", "string"]
+      },
+      "id": {
+        "type": ["null", "integer"]
+      },
+      "node_id": {
+        "type": ["null", "string"]
+      },
+      "name": {
+        "type": ["null", "string"]
+      },
+      "check_suite_id": {
+        "type": ["null", "integer"]
+      },
+      "check_suite_node_id": {
+        "type": ["null", "string"]
+      },
+      "head_branch": {
+        "type": ["null", "string"]
+      },
+      "head_sha": {
+        "type": ["null", "string"]
+      },
+      "path": {
+        "type": ["null", "string"]
+      },
+      "run_number": {
+        "type": ["null", "integer"]
+      },
+      "run_attempt": {
+        "type": ["null", "integer"]
+      },
+      "referenced_workflows": {
+        "type": ["null", "array"],
+        "items": {
+            "type": ["null", "object"],
+            "properties": {
+                "path": {
+                    "type": ["null", "string"]
+                },
+                "sha": {
+                    "type": ["null", "string"]
+                },
+                "ref": {
+                    "type": ["null", "string"]
+                }
+            }
+        }
+      },
+      "event": {
+        "type": ["null", "string"]
+      },
+      "status": {
+        "type": ["null", "string"]
+      },
+      "conclusion": {
+        "type": ["null", "string"]
+      },
+      "workflow_id": {
+        "type": ["null", "integer"]
+      },
+      "url": {
+        "type": ["null", "string"]
+      },
+      "html_url": {
+        "type": ["null", "string"]
+      },
+      "pull_requests": {
+        "type": ["null", "array"],
+        "items": {
+            "type": ["null", "object"],
+            "properties": {
+                "id": {
+                    "type": ["null", "integer"]
+                },
+                "number": {
+                    "type": ["null", "integer"]
+                },
+                "url": {
+                    "type": ["null", "string"]
+                },
+                "head": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "ref": {
+                            "type": ["null", "string"]
+                        },
+                        "sha": {
+                            "type": ["null", "string"]
+                        },
+                        "repo": {
+                            "type": ["null", "object"],
+                            "properties": {
+                                "id": {
+                                    "type": ["null", "integer"]
+                                },
+                                "url": {
+                                    "type": ["null", "string"]
+                                },
+                                "name": {
+                                    "type": ["null", "string"]
+                                }
+                            }
+                        }
+                    }
+                },
+                "base": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "ref": {
+                            "type": ["null", "string"]
+                        },
+                        "sha": {
+                            "type": ["null", "string"]
+                        },
+                        "repo": {
+                            "type": ["null", "object"],
+                            "properties": {
+                                "id": {
+                                    "type": ["null", "integer"]
+                                },
+                                "url": {
+                                    "type": ["null", "string"]
+                                },
+                                "name": {
+                                    "type": ["null", "string"]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+      },
+      "created_at": {
+          "type": ["null", "string"],
+          "format": "date-time"
+      },
+      "updated_at": {
+          "type": ["null", "string"],
+          "format": "date-time"
+      },
+      "actor_id": {
+        "type": ["null", "integer"]
+      },
+      "actor": {
+        "$ref": "shared/user.json#/"
+      },
+      "triggering_actor_id": {
+        "type": ["null", "integer"]
+      },
+      "triggering_actor": {
+        "$ref": "shared/user.json#/"
+      },
+      "run_started_at": {
+        "type": ["null", "string"]
+      },
+      "jobs_url": {
+        "type": ["null", "string"]
+      },
+      "logs_url": {
+        "type": ["null", "string"]
+      },
+      "check_suite_url": {
+        "type": ["null", "string"]
+      },
+      "artifacts_url": {
+        "type": ["null", "string"]
+      },
+      "cancel_url": {
+        "type": ["null", "string"]
+      },
+      "rerun_url": {
+        "type": ["null", "string"]
+      },
+      "previous_attempt_url": {
+        "type": ["null", "string"]
+      },
+      "workflow_url": {
+        "type": ["null", "string"]
+      },
+      "head_commit": {
+        "type": ["null", "object"],
+        "properties": {
+            "id": {
+                "type": ["null", "string"]
+            },
+            "tree_id": {
+                "type": ["null", "string"]
+            },
+            "message": {
+                "type": ["null", "string"]
+            },
+            "timestamp": {
+                "type": ["null", "string"],
+                "format": "date-time"
+            },
+            "author": {
+              "type": ["null", "object"],
+              "properties": {
+                "name": {
+                    "type": ["null", "string"]
+                },
+                "email": {
+                    "type": ["null", "string"]
+                }
+              }
+            },
+            "committer": {
+              "type": ["null", "object"],
+              "properties": {
+                "name": {
+                    "type": ["null", "string"]
+                },
+                "email": {
+                    "type": ["null", "string"]
+                }
+              }
+            },
+            "repo": {
+                "type": ["null", "object"],
+                "properties": {
+                    "id": {
+                        "type": ["null", "integer"]
+                    },
+                    "url": {
+                        "type": ["null", "string"]
+                    },
+                    "name": {
+                        "type": ["null", "string"]
+                    }
+                }
+            }
+        }
+      },
+      "repository_id": {
+        "type": ["null", "integer"]
+      },
+      "head_repository_id": {
+        "type": ["null", "integer"]
+      },
+      "display_title": {
+        "type": ["null", "string"]
+      }
+    }
+  }
+  
