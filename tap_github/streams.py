@@ -942,6 +942,15 @@ class Repositories(FullTableStream):
         if not record: return
         record['owner_id'] = self.get_field(record,['owner','id'])
 
+class RepositoryTeams(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/repos/repos#list-repository-teams
+    '''
+    tap_stream_id = "repository_teams"
+    replication_method = "FULL_TABLE"
+    key_properties = ["_sdc_repository","id"]
+    path = "teams"
+
 class Deployments(FullTableStream):
     '''
     https://docs.github.com/en/rest/deployments/deployments#list-deployments
@@ -983,6 +992,7 @@ class DeploymentStatuses(FullTableStream):
 # Dictionary of the stream classes
 STREAMS = {
     "repositories": Repositories,
+    "repository_teams": RepositoryTeams,
     "commits": Commits,
     "commit_files": CommitFiles,
     "commit_parents": CommitParents,
