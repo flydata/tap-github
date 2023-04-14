@@ -699,7 +699,7 @@ class Commits(IncrementalStream):
 
 class CommitFiles(IncrementalStream):
     '''
-    https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
+    Child of "commits" - https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
     '''
     tap_stream_id = "commit_files"
     replication_method = "INCREMENTAL"
@@ -712,7 +712,7 @@ class CommitFiles(IncrementalStream):
 
 class CommitParents(IncrementalStream):
     '''
-    https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
+    Child of "commits" - https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
     '''
     tap_stream_id = "commit_parents"
     replication_method = "INCREMENTAL"
@@ -725,7 +725,7 @@ class CommitParents(IncrementalStream):
 
 class CommitPullRequest(IncrementalStream):
     '''
-    https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
+    https://docs.github.com/en/rest/commits/commits#list-pull-requests-associated-with-a-commit
     '''
     tap_stream_id = "commit_pull_request"
     replication_method = "INCREMENTAL"
@@ -743,7 +743,6 @@ class CommitPullRequest(IncrementalStream):
         """
         if not record: return
         record['pull_request_id'] = self.get_field(record,['id'])
-
 
 
 class UserEmail(IncrementalStream):
@@ -784,7 +783,7 @@ class Issues(IncrementalOrderedStream):
 
 class IssueAssignees(IncrementalOrderedStream):
     '''
-    https://docs.github.com/en/rest/issues/issues#list-repository-issues
+    Child of "issues" - https://docs.github.com/en/rest/issues/issues#list-repository-issues
     '''
     tap_stream_id = "issue_assignees"
     replication_method = "INCREMENTAL"
@@ -797,7 +796,7 @@ class IssueAssignees(IncrementalOrderedStream):
 
 class IssueLabels(IncrementalOrderedStream):
     '''
-    https://docs.github.com/en/rest/issues/issues#list-repository-issues
+    Child of "issues" - https://docs.github.com/en/rest/issues/issues#list-repository-issues
     '''
     tap_stream_id = "issue_labels"
     replication_method = "INCREMENTAL"
@@ -830,7 +829,7 @@ class Releases(FullTableStream):
 
 class ReleaseAssets(FullTableStream):
     '''
-    https://docs.github.com/en/rest/releases/releases#list-releases
+    Child of "releases" - https://docs.github.com/en/rest/releases/releases#list-releases
     '''
     tap_stream_id = "release_assets"
     replication_method = "FULL_TABLE"
@@ -940,7 +939,7 @@ class StarGazers(FullTableStream):
 
 class Repositories(FullTableStream):
     '''
-    https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
+    https://docs.github.com/en/rest/repos/repos#list-organization-repositories
     '''
     tap_stream_id = "repositories"
     replication_method = "FULL_TABLE"
@@ -968,7 +967,7 @@ class RepositoryTeams(FullTableStream):
 
 class RepositoryTopics(FullTableStream):
     '''
-    https://docs.github.com/en/rest/repos/repos#list-repository-teams
+    Child of "repositories" - https://docs.github.com/en/rest/repos/repos#list-organization-repositories
     '''
     tap_stream_id = "repository_topics"
     replication_method = "FULL_TABLE"
@@ -1020,7 +1019,7 @@ class DeploymentStatuses(FullTableStream):
 
 class Workflows(FullTableStream):
     '''
-    https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#list-repository-workflows
+    https://docs.github.com/en/rest/actions/workflows#list-repository-workflows
     '''
     tap_stream_id = "workflows"
     replication_method = "FULL_TABLE"
@@ -1030,7 +1029,7 @@ class Workflows(FullTableStream):
 
 class WorkflowRuns(IncrementalStream):
     '''
-    https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#list-repository-workflows
+    https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     '''
     tap_stream_id = "workflow_runs"
     replication_method = "INCREMENTAL"
@@ -1054,7 +1053,7 @@ class WorkflowRuns(IncrementalStream):
 
 class WorkflowPullRequests(IncrementalStream):
     '''
-    https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#list-repository-workflows
+    Child of "workflow_runs" - https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     '''
     tap_stream_id = "workflow_pull_requests"
     replication_method = "INCREMENTAL"
