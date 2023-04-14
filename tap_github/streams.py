@@ -1024,7 +1024,6 @@ class Workflows(FullTableStream):
     '''
     tap_stream_id = "workflows"
     replication_method = "FULL_TABLE"
-    use_repository = True
     key_properties = ["id"]
     path = "actions/workflows"
     result_path = "workflows"

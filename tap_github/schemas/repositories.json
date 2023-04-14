@@ -64,12 +64,6 @@
       "is_template": {
         "type": ["null", "boolean"]
       },
-      "topics": {
-        "type": ["null", "array"],
-        "items": {
-          "type": ["null", "string"]
-        }
-      },
       "has_issues": {
         "type": ["null", "boolean"]
       },
