@@ -1,7 +1,29 @@
 # Changelog
 
 # 2.1.0
-  * Add repositories table
+  * Add the following tables:
+    * release_asset
+    * branches
+    * commit_files
+    * commit_parents
+    * commit_pull_request
+    * commit_users_emails
+    * deployments
+    * deployment_statuses
+    * issue_assignees
+    * issue_labels
+    * repository_teams
+    * repository_topics
+    * repositories
+    * workflows
+    * workflow_runs
+    * workflow_pull_requests
+  * Add ability to create a child table with no endpoint to call, for normalizing data from parent which has a column of `array` type.
+  * Add ability to inherit fields from parent streams (both normal and array-like columns)
+  * Create option to add a custom column name when the inherited array is not an array of objects, but an array of strings.
+  * Add ability to look through a path on the response for the array of values.
+  * Add custom filter param for endpoints which require a different filter than `since`. 
+  
 
 # 2.0.0
   * Schema updates [#170](https://github.com/singer-io/tap-github/pull/170) [#169](https://github.com/singer-io/tap-github/pull/169)
