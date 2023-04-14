@@ -974,6 +974,7 @@ class RepositoryTopics(FullTableStream):
     replication_method = "FULL_TABLE"
     key_properties = ["repository","topic"]
     no_path = True
+    id_keys = ["full_name"]
     inherit_parent_fields = [("repository","full_name")]
     inherit_array_parent_fields = "topics"
     custom_column_name = "topic"
