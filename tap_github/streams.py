@@ -1039,7 +1039,9 @@ class WorkflowRuns(IncrementalStream):
     key_properties = ["id"]
     path = "actions/runs"
     result_path = "workflow_runs"
-    filter_param_custom = "created:>="
+    filter_param_custom = "created=>="
+    children = ["workflow_pull_requests"]
+    has_children = True
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
@@ -1049,6 +1051,27 @@ class WorkflowRuns(IncrementalStream):
         record['actor_id'] = self.get_field(record,['actor','id'])
         record['triggering_actor_id'] = self.get_field(record,['triggering_actor','id'])
         record['repository_id'] = self.get_field(record,['repository','id'])
+
+class WorkflowPullRequests(IncrementalStream):
+    '''
+    https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#list-repository-workflows
+    '''
+    tap_stream_id = "workflow_pull_requests"
+    replication_method = "INCREMENTAL"
+    replication_keys = "updated_at"
+    key_properties = ["workflow_run_id","id"]
+    no_path = True
+    inherit_parent_fields = [("workflow_run_id","id"), ("_sdc_repository","_sdc_repository")]
+    inherit_array_parent_fields = "pull_requests"
+    parent = 'workflow_runs'
+
+    def add_fields_at_1st_level(self, record, parent_record = None):
+        """
+        Add fields in the record explicitly at the 1st level of JSON.
+        """
+        if not record: return
+        record['head_sha'] = self.get_field(record,['head','sha'])
+        record['base_sha'] = self.get_field(record,['base','sha'])
 
 # Dictionary of the stream classes
 STREAMS = {
@@ -1088,5 +1111,6 @@ STREAMS = {
     "deployments": Deployments,
     "deployment_statuses": DeploymentStatuses,
     "workflows": Workflows,
-    "workflow_runs": WorkflowRuns
+    "workflow_runs": WorkflowRuns,
+    "workflow_pull_requests": WorkflowPullRequests
 }
