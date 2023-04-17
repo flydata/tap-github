@@ -707,6 +707,7 @@ class CommitFiles(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["commit_sha", "filename"]
+    id_keys = ["sha"]
     use_repository = True
     path = "commits/{}"
     inherit_parent_fields = [("commit_sha","sha"), ("_sdc_repository","_sdc_repository")]
