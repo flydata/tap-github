@@ -201,6 +201,8 @@ class Stream:
                     else:
                         # Write JSON response directly if it is a single record only.
                         records['_sdc_repository'] = repo_path
+                        for column, field in child_object.inherit_parent_fields:
+                            records[column] = parent_record.get(field)
                         child_object.add_fields_at_1st_level(record = records, parent_record = parent_record)
 
                         with singer.Transformer() as transformer:
@@ -705,10 +707,11 @@ class CommitFiles(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["commit_sha", "filename"]
-    no_path = True
+    use_repository = True
+    path = "commits/{}"
     inherit_parent_fields = [("commit_sha","sha"), ("_sdc_repository","_sdc_repository")]
-    inherit_array_parent_fields = "files"
     parent = 'commits'
+    result_path = "files"
 
 class CommitParents(IncrementalStream):
     '''
