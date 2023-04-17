@@ -923,6 +923,20 @@ class Collaborators(FullTableStream):
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
     path = "collaborators"
+    children = ["collaborator_details"]
+    has_children = True
+
+class CollaboratorDetails(FullTableStream):
+    '''
+    https://docs.github.com/en/rest/users/users#get-a-user
+    '''
+    tap_stream_id = "collaborator_details"
+    replication_method = "FULL_TABLE"
+    key_properties = ["id"]
+    id_keys = ["login"]
+    path = "users/{}"
+    parent = 'collaborators'
+
 
 class StarGazers(FullTableStream):
     '''
@@ -1108,6 +1122,7 @@ STREAMS = {
     "team_members": TeamMembers,
     "team_memberships": TeamMemberships,
     "collaborators": Collaborators,
+    "collaborator_details": CollaboratorDetails,
     "stargazers": StarGazers,
     "commit_users_emails": UserEmail,
     "deployments": Deployments,

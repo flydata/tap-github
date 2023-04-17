@@ -67,9 +67,6 @@
     },
     "role_name": {
       "type": ["null", "string"]
-    },
-    "_sdc_repository": {
-      "type": ["string"]
     }
   }
 }
