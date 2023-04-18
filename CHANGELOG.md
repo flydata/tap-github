@@ -18,6 +18,7 @@
     * workflows
     * workflow_runs
     * workflow_pull_requests
+    * collaborator_details
   * Add ability to create a child table with no endpoint to call, for normalizing data from parent which has a column of `array` type.
   * Add ability to inherit fields from parent streams (both normal and array-like columns)
   * Create option to add a custom column name when the inherited array is not an array of objects, but an array of strings.

@@ -5,14 +5,14 @@ from singer import (metrics, bookmarks, metadata)
 LOGGER = singer.get_logger()
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
-def get_bookmark(state, repo, stream_name, bookmark_key, start_date):
+def get_bookmark(state, repo, stream_name, bookmark_key, start_date, is_incremental = True):
     """
     Return bookmark value if available in the state otherwise return start date
     """
-    repo_stream_dict = bookmarks.get_bookmark(state, repo, stream_name)
-    if repo_stream_dict:
-        return repo_stream_dict.get(bookmark_key)
-
+    if is_incremental:
+        repo_stream_dict = bookmarks.get_bookmark(state, repo, stream_name)
+        if repo_stream_dict:
+            return repo_stream_dict.get(bookmark_key)
     return start_date
 
 def get_schema(catalog, stream_id):
@@ -155,7 +155,8 @@ class Stream:
         """
         child_object = STREAMS[child_stream]()
 
-        child_bookmark_value = get_bookmark(state, repo_path, child_object.tap_stream_id, "since", start_date)
+        is_stream_incremental = child_object.replication_method == "INCREMENTAL" and child_object.replication_keys
+        child_bookmark_value = get_bookmark(state, repo_path, child_object.tap_stream_id, "since", start_date, is_stream_incremental)
 
         if not parent_id:
             parent_id = grand_parent_id
@@ -701,11 +702,10 @@ class Commits(IncrementalStream):
 
 class CommitFiles(IncrementalStream):
     '''
-    Child of "commits" - https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
+    Child of "commits" - https://docs.github.com/en/rest/commits/commits#get-a-commit
     '''
     tap_stream_id = "commit_files"
     replication_method = "INCREMENTAL"
-    replication_keys = "updated_at"
     key_properties = ["commit_sha", "filename"]
     id_keys = ["sha"]
     use_repository = True
@@ -714,13 +714,12 @@ class CommitFiles(IncrementalStream):
     parent = 'commits'
     result_path = "files"
 
-class CommitParents(IncrementalStream):
+class CommitParents(FullTableStream):
     '''
     Child of "commits" - https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
     '''
     tap_stream_id = "commit_parents"
     replication_method = "INCREMENTAL"
-    replication_keys = "updated_at"
     key_properties = ["children_sha","sha"]
     no_path = True
     inherit_parent_fields = [("children_sha","sha"), ("_sdc_repository","_sdc_repository")]
@@ -733,7 +732,6 @@ class CommitPullRequest(IncrementalStream):
     '''
     tap_stream_id = "commit_pull_request"
     replication_method = "INCREMENTAL"
-    replication_keys = "updated_at"
     key_properties = ["commit_sha","pull_request_id"]
     path = "commits/{}/pulls"
     use_repository = True
@@ -791,7 +789,6 @@ class IssueAssignees(IncrementalOrderedStream):
     '''
     tap_stream_id = "issue_assignees"
     replication_method = "INCREMENTAL"
-    replication_keys = "updated_at"
     key_properties = ["issue_id","id"]
     no_path = True
     inherit_parent_fields = [("issue_id","id"), ("_sdc_repository","_sdc_repository")]
@@ -804,7 +801,6 @@ class IssueLabels(IncrementalOrderedStream):
     '''
     tap_stream_id = "issue_labels"
     replication_method = "INCREMENTAL"
-    replication_keys = "updated_at"
     key_properties = ["issue_id","id"]
     no_path = True
     inherit_parent_fields = [("issue_id","id"), ("_sdc_repository","_sdc_repository")]
@@ -1057,7 +1053,7 @@ class WorkflowRuns(IncrementalStream):
     path = "actions/runs"
     result_path = "workflow_runs"
     filter_param_custom = "created=>="
-    children = ["workflow_pull_requests"]
+    children = ["workflow_run_pull_requests"]
     has_children = True
 
     def add_fields_at_1st_level(self, record, parent_record = None):
@@ -1073,9 +1069,8 @@ class WorkflowPullRequests(IncrementalStream):
     '''
     Child of "workflow_runs" - https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     '''
-    tap_stream_id = "workflow_pull_requests"
+    tap_stream_id = "workflow_run_pull_requests"
     replication_method = "INCREMENTAL"
-    replication_keys = "updated_at"
     key_properties = ["workflow_run_id","id"]
     no_path = True
     inherit_parent_fields = [("workflow_run_id","id"), ("_sdc_repository","_sdc_repository")]
@@ -1130,5 +1125,5 @@ STREAMS = {
     "deployment_statuses": DeploymentStatuses,
     "workflows": Workflows,
     "workflow_runs": WorkflowRuns,
-    "workflow_pull_requests": WorkflowPullRequests
+    "workflow_run_pull_requests": WorkflowPullRequests
 }
