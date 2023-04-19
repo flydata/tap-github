@@ -1,0 +1,68 @@
+{
+    "type": ["null", "object"],
+    "properties": {
+        "_sdc_repository": {
+          "type": ["string"]
+        },
+        "url": {
+          "type": ["null", "string"]
+        },
+        "id": {
+          "type": ["null", "integer"]
+        },
+        "node_id": {
+          "type": ["null", "string"]
+        },
+        "sha": {
+          "type": ["null", "string"]
+        },
+        "ref": {
+          "type": ["null", "string"]
+        },
+        "task": {
+          "type": ["null", "string"]
+        },
+        "payload": {
+          "type": ["null", "object", "string"]
+        },
+        "original_environment": {
+          "type": ["null", "string"]
+        },
+        "environment": {
+          "type": ["null", "string"]
+        },
+        "description": {
+          "type": ["null", "string"]
+        },
+        "creator_id": {
+          "type": ["null", "integer"]
+        },
+        "creator": {
+          "$ref": "shared/user.json#/"
+        },
+        "created_at": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        },
+        "updated_at": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        },
+        "statuses_url": {
+          "type": ["null", "string"]
+        },
+        "repository_url": {
+          "type": ["null", "string"]
+        },
+        "transient_environment": {
+          "type": ["null", "boolean"]
+        },
+        "production_environment": {
+          "type": ["null", "boolean"]
+        },
+        "performed_via_github_app": {
+          "$ref": "shared/app.json#/"
+        }
+    }
+  }
+  

@@ -1,0 +1,12 @@
+{
+    "type": ["null", "object"],
+    "properties": {
+      "repository": {
+        "type": ["null", "string"]
+      },
+      "topic": {
+        "type": ["null", "string"]
+      }
+    }
+  }
+  

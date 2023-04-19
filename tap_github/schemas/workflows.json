@@ -1,0 +1,45 @@
+{
+    "type": ["null", "object"],
+    "properties": {
+      "_sdc_repository": {
+        "type": ["null", "string"]
+      },
+      "id": {
+        "type": ["null", "number"]
+      },
+      "node_id": {
+        "type": ["null", "string"]
+      },
+      "name": {
+        "type": ["null", "string"]
+      },
+      "path": {
+        "type": ["null", "string"]
+      },
+      "state": {
+        "type": ["null", "string"]
+      },
+      "created_at": {
+          "type": ["null", "string"],
+          "format": "date-time"
+      },
+      "updated_at": {
+          "type": ["null", "string"],
+          "format": "date-time"
+      },
+      "url": {
+        "type": ["null", "string"]
+      },
+      "html_url": {
+        "type": ["null", "string"]
+      },
+      "badge_url": {
+        "type": ["null", "string"]
+      },
+      "deleted_at": {
+          "type": ["null", "string"],
+          "format": "date-time"
+      }
+    }
+  }
+  

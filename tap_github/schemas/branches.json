@@ -1,0 +1,391 @@
+{
+    "type": ["null", "object"],
+    "properties": {
+        "_sdc_repository": {
+            "type": ["string"]
+        },
+        "name": {
+            "type": ["null", "string"]
+        },
+        "commit_sha": {
+            "type": ["null", "string"]
+        },
+        "commit": {
+            "type": ["null", "object"],
+            "properties": {
+                "sha": {
+                    "type": ["null", "string"]
+                },
+                "url": {
+                    "type": ["null", "string"],
+                    "format": "uri"
+                }
+            }
+        },
+        "protected": {
+            "type": ["null", "boolean"]
+        },
+        "protection": {
+            "type": ["null", "object"],
+            "properties": {
+                "url": {
+                    "type": ["null", "string"]
+                },
+                "enabled": {
+                    "type": ["null", "boolean"]
+                },
+                "required_status_checks": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "url": {
+                            "type": ["null", "string"]
+                        },
+                        "enforcement_level": {
+                            "type": ["null", "string"]
+                        },
+                        "contexts": {
+                            "type": ["null", "array"],
+                            "items": {
+                              "type": ["null", "string"]
+                            }
+                        },
+                        "checks": {
+                            "type": ["null", "array"],
+                            "items": {
+                                "type": ["null", "object"],
+                                "properties": {
+                                    "context": {
+                                        "type": ["null", "string"]
+                                    },
+                                    "app_id": {
+                                        "type": ["null", "integer"]
+                                    }
+                                }
+                            }
+                        },
+                        "contexts_url": {
+                            "type": ["null", "string"]
+                        },
+                        "strict": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "enforce_admins": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "url": {
+                            "type": ["null", "string"],
+                            "format": "uri"
+                        },
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "required_pull_request_reviews": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "url": {
+                            "type": ["null", "string"],
+                            "format": "uri"
+                        },
+                        "dismissal_restrictions": {
+                            "type": ["null", "object"],
+                            "properties": {
+                                "users": {
+                                    "type": ["null", "array"],
+                                    "items": {
+                                        "$ref": "shared/user.json#/"
+                                    }
+                                },
+                                "teams": {
+                                    "type": ["null", "array"],
+                                    "items": {
+                                        "$ref": "shared/teams.json#/"
+                                    }
+                                },
+                                "apps": {
+                                    "type": ["null", "array"],
+                                    "items": {
+                                        "$ref": "shared/app.json#/"
+                                    }
+                                },
+                                "users_url": {
+                                    "type": ["null", "string"]
+                                },
+                                "url": {
+                                    "type": ["null", "string"]
+                                },
+                                "teams_url": {
+                                    "type": ["null", "string"]
+                                }
+                            }
+                        },
+                        "bypass_pull_request_allowances": {
+                            "type": ["null", "object"],
+                            "properties": {
+                                "users": {
+                                    "type": ["null", "array"],
+                                    "items": {
+                                        "$ref": "shared/user.json#/"
+                                    }
+                                },
+                                "teams": {
+                                    "type": ["null", "array"],
+                                    "items": {
+                                        "$ref": "shared/teams.json#/"
+                                    }
+                                },
+                                "apps": {
+                                    "type": ["null", "array"],
+                                    "items": {
+                                        "id": {
+                                          "type": ["null", "number"]
+                                        },
+                                        "slug": {
+                                          "type": ["null", "string"]
+                                        },
+                                        "node_id": {
+                                          "type": ["null", "string"]
+                                        },
+                                        "owner": {
+                                            "$ref": "shared/user.json#/"    
+                                        },
+                                        "name": {
+                                          "type": ["null", "string"]
+                                        },
+                                        "description": {
+                                          "type": ["null", "string"]
+                                        },
+                                        "external_url": {
+                                          "type": ["null", "string"],
+                                          "format": "uri"
+                                        },
+                                        "html_url": {
+                                          "type": ["null", "string"],
+                                          "format": "uri"
+                                        },
+                                        "created_at": {
+                                            "type": ["null", "string"],
+                                            "format": "date-time"
+                                        },
+                                        "updated_at": {
+                                            "type": ["null", "string"],
+                                            "format": "date-time"
+                                        },
+                                        "permissions": {
+                                          "$ref": "shared/pull_permissions.json#/"
+                                        },
+                                        "events": {
+                                            "type": ["null", "array"],
+                                            "items": {
+                                              "type": ["null", "string"]
+                                            }
+                                        },
+                                        "installations_count": {
+                                          "type": ["null", "integer"]
+                                        },
+                                        "client_id": {
+                                          "type": ["null", "string"]
+                                        },
+                                        "client_secret": {
+                                          "type": ["null", "string"]
+                                        },
+                                        "webhook_secret": {
+                                          "type": ["null", "string"]
+                                        },
+                                        "pem": {
+                                          "type": ["null", "string"]
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "dismiss_stale_reviews": {
+                            "type": ["null", "boolean"]
+                        },
+                        "require_code_owner_reviews": {
+                            "type": ["null", "boolean"]
+                        },
+                        "required_approving_review_count": {
+                            "type": ["null", "integer"]
+                        },
+                        "require_last_push_approval": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "restrictions": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "users": {
+                            "type": ["null", "array"],
+                            "items": {
+                                "$ref": "shared/user.json#/"
+                            }
+                        },
+                        "teams": {
+                            "type": ["null", "array"],
+                            "items": {
+                                "$ref": "shared/teams.json#/"
+                            }
+                        },
+                        "apps": {
+                            "type": ["null", "array"],
+                            "items": {
+                                "id": {
+                                  "type": ["null", "number"]
+                                },
+                                "slug": {
+                                  "type": ["null", "string"]
+                                },
+                                "node_id": {
+                                  "type": ["null", "string"]
+                                },
+                                "owner": {
+                                    "$ref": "shared/user.json#/"    
+                                },
+                                "name": {
+                                  "type": ["null", "string"]
+                                },
+                                "description": {
+                                  "type": ["null", "string"]
+                                },
+                                "external_url": {
+                                  "type": ["null", "string"],
+                                  "format": "uri"
+                                },
+                                "html_url": {
+                                  "type": ["null", "string"],
+                                  "format": "uri"
+                                },
+                                "created_at": {
+                                    "type": ["null", "string"],
+                                    "format": "date-time"
+                                },
+                                "updated_at": {
+                                    "type": ["null", "string"],
+                                    "format": "date-time"
+                                },
+                                "permissions": {
+                                  "$ref": "shared/pull_permissions.json#/"
+                                },
+                                "events": {
+                                    "type": ["null", "array"],
+                                    "items": {
+                                      "type": ["null", "string"]
+                                    }
+                                },
+                                "installations_count": {
+                                  "type": ["null", "integer"]
+                                },
+                                "client_id": {
+                                  "type": ["null", "string"]
+                                },
+                                "client_secret": {
+                                  "type": ["null", "string"]
+                                },
+                                "webhook_secret": {
+                                  "type": ["null", "string"]
+                                },
+                                "pem": {
+                                  "type": ["null", "string"]
+                                }
+                            }
+                        },
+                        "users_url": {
+                            "type": ["null", "string"]
+                        },
+                        "url": {
+                            "type": ["null", "string"]
+                        },
+                        "teams_url": {
+                            "type": ["null", "string"]
+                        },
+                        "apps_url": {
+                            "type": ["null", "string"]
+                        }
+                    }
+                },
+                "required_linear_history": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "allow_force_pushes": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "allow_deletions": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "block_creations": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "required_conversation_resolution": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "name": {
+                    "type": ["null", "string"]
+                },
+                "protection_url": {
+                    "type": ["null", "string"]
+                },
+                "required_signatures": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "url": {
+                            "type": ["null", "string"],
+                            "format": "uri"
+                        },
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "lock_branch": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                },
+                "allow_fork_syncing": {
+                    "type": ["null", "object"],
+                    "properties": {
+                        "enabled": {
+                            "type": ["null", "boolean"]
+                        }
+                    }
+                }
+            }
+        },
+        "protection_url": {
+            "type": ["null", "string"]
+        }
+    }
+  }

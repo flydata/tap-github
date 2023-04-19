@@ -4,9 +4,6 @@
       "_sdc_repository": {
         "type": ["null", "string"]
       },
-      "issue_id": {
-        "type": ["null", "integer"]
-      },
       "id": {
         "type": ["null", "number"]
       },

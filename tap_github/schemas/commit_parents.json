@@ -1,0 +1,22 @@
+{  
+    "type": ["null", "object"],
+    "properties": {
+        "_sdc_repository": {
+          "type": ["string"]
+        },
+        "children_sha": {
+            "type": ["null", "string"]
+        },
+        "sha": {
+            "type": ["null", "string"]
+        },
+        "url": {
+            "type": ["null", "string"],
+            "format": "uri"
+        },
+        "html_url": {
+            "type": ["null", "string"],
+            "format": "uri"
+        }
+    }   
+}

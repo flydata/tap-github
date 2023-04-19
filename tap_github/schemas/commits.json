@@ -7,15 +7,6 @@
     "node_id": {
       "type": ["null", "string"]
     },
-    "pr_id": {
-      "type": ["null", "string"]
-    },
-    "pr_number": {
-      "type": ["null", "integer"]
-    },
-    "id": {
-      "type": ["null", "string"]
-    },
     "updated_at": {
       "type": ["null", "string"],
       "format": "date-time"
@@ -26,55 +17,8 @@
     "url": {
       "type": ["null", "string"]
     },
-    "parents": {
-      "type": ["null", "array"],
-      "items": {
-        "type": ["null", "object"],
-        "additionalProperties": false,
-        "properties": {
-          "sha": {
-            "type": ["null", "string"]
-          },
-          "url": {
-            "type": ["null", "string"]
-          },
-          "html_url": {
-            "type": ["null", "string"]
-          }
-        }
-      }
-    },
-    "files": {
-      "type": ["null", "array"],
-      "items": {
-        "type": ["null", "object"],
-        "properties": {
-          "filename": {
-            "type": ["null", "string"]
-          },
-          "additions": {
-            "type": ["null", "number"]
-          },
-          "deletions": {
-            "type": ["null", "number"]
-          },
-          "changes": {
-            "type": ["null", "number"]
-          },
-          "status": {
-            "type": ["null", "string"]
-          },
-          "raw_url": {
-            "type": ["null", "string"]
-          },
-          "blob_url": {
-            "type": ["null", "string"]
-          },
-          "patch": {
-            "type": ["null", "string"]
-          }
-        }
-      }
+    "message": {
+      "type": ["null", "string"]
     },
     "html_url": {
       "type": ["null", "string"]
@@ -252,6 +196,18 @@
           "type": ["null", "integer"]
         }
       }
+    },
+    "author_email": {
+      "type": ["null", "string"]
+    },
+    "author_name": {
+      "type": ["null", "string"]
+    },
+    "committer_email": {
+      "type": ["null", "string"]
+    },
+    "committer_name": {
+      "type": ["null", "string"]
     },
     "committer": {
       "$ref": "shared/user.json#/"

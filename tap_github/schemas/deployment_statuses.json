@@ -1,0 +1,59 @@
+{
+    "type": ["null", "object"],
+    "properties": {
+        "_sdc_repository": {
+          "type": ["string"]
+        },
+        "url": {
+          "type": ["null", "string"]
+        },
+        "id": {
+          "type": ["null", "integer"]
+        },
+        "node_id": {
+          "type": ["null", "string"]
+        },
+        "state": {
+          "type": ["null", "string"]
+        },
+        "creator_id": {
+          "type": ["null", "integer"]
+        },
+        "creator": {
+          "$ref": "shared/user.json#/"
+        },
+        "description": {
+          "type": ["null", "string"]
+        },
+        "environment": {
+          "type": ["null", "string"]
+        },
+        "target_url": {
+          "type": ["null", "string"]
+        },
+        "created_at": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        },
+        "updated_at": {
+            "type": ["null", "string"],
+            "format": "date-time"
+        },
+        "deployment_url": {
+          "type": ["null", "string"]
+        },
+        "repository_url": {
+          "type": ["null", "string"]
+        },
+        "environment_url": {
+          "type": ["null", "string"]
+        },
+        "log_url": {
+          "type": ["null", "string"]
+        },
+        "performed_via_github_app": {
+          "$ref": "shared/app.json#/"
+        }
+    }
+  }
+  

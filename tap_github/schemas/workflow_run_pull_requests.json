@@ -1,0 +1,77 @@
+{
+    "type": ["null", "object"],
+    "properties": {
+      "_sdc_repository": {
+        "type": ["null", "string"]
+      },
+      "workflow_run_id": {
+        "type": ["null", "integer"]
+      },
+    "id": {
+        "type": ["null", "integer"]
+    },
+    "number": {
+        "type": ["null", "integer"]
+    },
+    "url": {
+        "type": ["null", "string"]
+    },
+    "head_sha": {
+        "type": ["null", "string"]
+    },
+    "head": {
+        "type": ["null", "object"],
+        "properties": {
+            "ref": {
+                "type": ["null", "string"]
+            },
+            "sha": {
+                "type": ["null", "string"]
+            },
+            "repo": {
+                "type": ["null", "object"],
+                "properties": {
+                    "id": {
+                        "type": ["null", "integer"]
+                    },
+                    "url": {
+                        "type": ["null", "string"]
+                    },
+                    "name": {
+                        "type": ["null", "string"]
+                    }
+                }
+            }
+        }
+    },
+    "base_sha": {
+        "type": ["null", "string"]
+    },
+    "base": {
+        "type": ["null", "object"],
+        "properties": {
+            "ref": {
+                "type": ["null", "string"]
+            },
+            "sha": {
+                "type": ["null", "string"]
+            },
+            "repo": {
+                "type": ["null", "object"],
+                "properties": {
+                    "id": {
+                        "type": ["null", "integer"]
+                    },
+                    "url": {
+                        "type": ["null", "string"]
+                    },
+                    "name": {
+                        "type": ["null", "string"]
+                    }
+                }
+            }
+        }
+    }
+}
+  }
+  

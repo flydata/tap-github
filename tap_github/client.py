@@ -45,6 +45,9 @@ class MovedPermanentlyError(GithubException):
 class ConflictError(GithubException):
     pass
 
+class DisabledResourceError(GithubException):
+    pass
+
 class RateLimitExceeded(GithubException):
     pass
 
@@ -81,6 +84,10 @@ ERROR_CODE_EXCEPTION_MAPPING = {
         "raise_exception": ConflictError,
         "message": "The request could not be completed due to a conflict with the current state of the server."
     },
+    410: {
+        "raise_exception": DisabledResourceError,
+        "message": "The request resource is disabled for the repository."
+    },
     422: {
         "raise_exception": UnprocessableError,
         "message": "The request was not able to process right now."
@@ -105,7 +112,7 @@ def raise_for_error(resp, source, stream, client, should_skip_404):
     except JSONDecodeError:
         response_json = {}
 
-    if error_code == 404 and should_skip_404:
+    if (error_code == 404 or error_code == 410) and should_skip_404:
         # Add not accessible stream into list.
         client.not_accessible_repos.add(stream)
         details = ERROR_CODE_EXCEPTION_MAPPING.get(error_code).get("message")
@@ -196,10 +203,11 @@ class GithubClient:
             self.session.headers.update(headers)
             resp = self.session.request(method='get', url=url, timeout=self.get_request_timeout())
             if resp.status_code != 200:
+                LOGGER.info(f'Found a non 200 response: {url}, {resp.status_code}')
                 raise_for_error(resp, source, stream, self, should_skip_404)
             timer.tags[metrics.Tag.http_status_code] = resp.status_code
             rate_throttling(resp, self.max_sleep_seconds)
-            if resp.status_code == 404:
+            if resp.status_code == 404 or resp.status_code == 410:
                 # Return an empty response body since we're not raising a NotFoundException
                 resp._content = b'{}' # pylint: disable=protected-access
             return resp
