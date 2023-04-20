@@ -4,6 +4,7 @@ from singer import (metrics, bookmarks, metadata)
 
 LOGGER = singer.get_logger()
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+PER_PAGE_NUMBER = 100
 
 def get_bookmark(state, repo, stream_name, bookmark_key, start_date, is_incremental = True):
     """
@@ -62,8 +63,9 @@ class Stream:
     replication_keys = None
     key_properties = []
     path = None
-    filter_param = False
-    filter_param_custom = ""
+    since_filter_param = ""
+    since_filter_param_custom = ""
+    additional_filters = ""
     id_keys = []
     use_organization = False
     children = []
@@ -81,12 +83,14 @@ class Stream:
         """
         Build the full url with parameters and attributes.
         """
-        if self.filter_param:
+        if self.since_filter_param:
             # Add the since parameter for incremental streams
-            query_string = '?since={}'.format(bookmark)
-        elif self.filter_param_custom:
+            query_string = '?since={}{}'.format(bookmark,self.since_filter_param)
+        elif self.since_filter_param_custom:
             # Add additional custom filter for incremental streams
-            query_string = f'?{self.filter_param_custom}{bookmark}'
+            query_string = f'?{self.since_filter_param_custom}{bookmark}'
+        elif self.additional_filters:
+            query_string = f'?{self.additional_filters}'
         else:
             query_string = ''
 
@@ -402,6 +406,8 @@ class IncrementalStream(Stream):
                                                                 stream_to_sync,
                                                                 selected_stream_ids,
                                                                 parent_record = record)
+                            # Write bookmark for incremental stream.
+                            self.write_bookmarks(self.tap_stream_id, selected_stream_ids, max_bookmark_value, repo_path, state)
                         else:
                             LOGGER.warning("Skipping this record for %s stream with %s = %s as it is missing replication key %s.",
                                         self.tap_stream_id, self.key_properties, record[self.key_properties], self.replication_keys)
@@ -492,6 +498,8 @@ class IncrementalOrderedStream(Stream):
                                                     stream_to_sync,
                                                     selected_stream_ids,
                                                     parent_record = record)
+                        # Write bookmark for incremental stream.
+                        self.write_bookmarks(self.tap_stream_id, selected_stream_ids, bookmark_value, repo_path, state)
                     else:
                         LOGGER.warning("Skipping this record for %s stream with %s = %s as it is missing replication key %s.",
                                     self.tap_stream_id, self.key_properties, record[self.key_properties], self.replication_keys)
@@ -512,6 +520,7 @@ class Reviews(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "submitted_at"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "pulls/{}/reviews"
     use_repository = True
     id_keys = ['number']
@@ -525,13 +534,14 @@ class Reviews(IncrementalStream):
 
 class ReviewComments(IncrementalOrderedStream):
     '''
-    https://docs.github.com/en/rest/pulls/comments#get-a-review-comment-for-a-pull-request
+    https://docs.github.com/en/rest/pulls/comments#list-review-comments-on-a-pull-request
     '''
     tap_stream_id = "review_comments"
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    path = "pulls/{}/comments?sort=updated_at&direction=desc"
+    additional_filters = f"sort=updated_at&direction=desc&per_page{PER_PAGE_NUMBER}"
+    path = "pulls/{}/comments"
     use_repository = True
     id_keys = ['number']
     parent = 'pull_requests'
@@ -550,6 +560,7 @@ class PRCommits(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "pulls/{}/commits"
     use_repository = True
     id_keys = ['number']
@@ -573,7 +584,8 @@ class PullRequests(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    path = "pulls?state=all&sort=updated&direction=desc"
+    additional_filters = f"state=all&sort=updated&direction=desc&per_page{PER_PAGE_NUMBER}"
+    path = "pulls"
     children = ['reviews', 'review_comments', 'pr_commits']
     has_children = True
     pk_child_fields = ["number"]
@@ -586,6 +598,7 @@ class ProjectCards(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "projects/columns/{}/cards"
     tap_stream_id = "project_cards"
     parent = 'project_columns'
@@ -599,6 +612,7 @@ class ProjectColumns(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "projects/{}/columns"
     children = ["project_cards"]
     parent = "projects"
@@ -613,7 +627,8 @@ class Projects(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    path = "projects?state=all"
+    additional_filters = f"state=all&per_page{PER_PAGE_NUMBER}"
+    path = "projects"
     tap_stream_id = "projects"
     children = ["project_columns"]
     has_children = True
@@ -644,6 +659,7 @@ class TeamMembers(FullTableStream):
     tap_stream_id = "team_members"
     replication_method = "FULL_TABLE"
     key_properties = ["team_slug", "id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "orgs/{}/teams/{}/members"
     use_organization = True
     id_keys = ['slug']
@@ -666,6 +682,7 @@ class Teams(FullTableStream):
     tap_stream_id = "teams"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "orgs/{}/teams"
     use_organization = True
     children = ["team_members"]
@@ -683,7 +700,7 @@ class Commits(IncrementalStream):
     path = "commits"
     children= ["commit_users_emails", "commit_files", "commit_parents", "commit_pull_request"]
     has_children = True
-    filter_param = True
+    since_filter_param = f"&per_page={PER_PAGE_NUMBER}"
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
@@ -733,6 +750,7 @@ class CommitPullRequest(IncrementalStream):
     tap_stream_id = "commit_pull_request"
     replication_method = "INCREMENTAL"
     key_properties = ["commit_sha","pull_request_id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "commits/{}/pulls"
     use_repository = True
     id_keys = ["sha"]
@@ -767,8 +785,8 @@ class Comments(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    filter_param = True
-    path = "issues/comments?sort=updated&direction=desc"
+    since_filter_param = f"&sort=updated&direction=desc&per_page={PER_PAGE_NUMBER}"
+    path = "issues/comments"
 
 class Issues(IncrementalOrderedStream):
     '''
@@ -778,8 +796,8 @@ class Issues(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    filter_param = True
-    path = "issues?state=all&sort=updated&direction=desc"
+    since_filter_param = f"&state=all&sort=updated&direction=desc&per_page={PER_PAGE_NUMBER}"
+    path = "issues"
     children = ["issue_assignees","issue_labels"]
     has_children = True
 
@@ -814,6 +832,7 @@ class Assignees(FullTableStream):
     tap_stream_id = "assignees"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "assignees"
 
 class Releases(FullTableStream):
@@ -823,7 +842,8 @@ class Releases(FullTableStream):
     tap_stream_id = "releases"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
-    path = "releases?sort=created_at&direction=desc"
+    additional_filters = f"sort=created_at&direction=desc&per_page{PER_PAGE_NUMBER}"
+    path = "releases"
     children = ["release_assets"]
     has_children = True
 
@@ -838,6 +858,7 @@ class ReleaseAssets(FullTableStream):
     id_keys = ["id"]
     no_path = True
     inherit_parent_fields = [("release_id","id"), ("_sdc_repository","_sdc_repository")]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     inherit_array_parent_fields = "assets"
     parent = 'releases'
 
@@ -855,6 +876,7 @@ class Branches(FullTableStream):
     tap_stream_id = "branches"
     replication_method = "FULL_TABLE"
     key_properties = ["name"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "branches"
 
     def add_fields_at_1st_level(self, record, parent_record = None):
@@ -870,6 +892,7 @@ class Labels(FullTableStream):
     tap_stream_id = "labels"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "labels"
 
 class IssueEvents(IncrementalOrderedStream):
@@ -880,7 +903,8 @@ class IssueEvents(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "created_at"
     key_properties = ["id"]
-    path = "issues/events?sort=created_at&direction=desc"
+    additional_filters = f"sort=created_at&direction=desc&per_page{PER_PAGE_NUMBER}"
+    path = "issues/events"
 
 class Events(IncrementalStream):
     '''
@@ -890,6 +914,7 @@ class Events(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "created_at"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "events"
 
 class CommitComments(IncrementalStream):
@@ -900,6 +925,7 @@ class CommitComments(IncrementalStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "comments"
 
 class IssueMilestones(IncrementalOrderedStream):
@@ -910,7 +936,8 @@ class IssueMilestones(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    path = "milestones?direction=desc&sort=updated_at"
+    additional_filters = f"direction=desc&sort=updated_at&per_page{PER_PAGE_NUMBER}"
+    path = "milestones"
 
 class Collaborators(FullTableStream):
     '''
@@ -919,6 +946,7 @@ class Collaborators(FullTableStream):
     tap_stream_id = "collaborators"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "collaborators"
     children = ["collaborator_details"]
     has_children = True
@@ -931,6 +959,7 @@ class CollaboratorDetails(FullTableStream):
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
     id_keys = ["login"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "users/{}"
     parent = 'collaborators'
 
@@ -942,6 +971,7 @@ class StarGazers(FullTableStream):
     tap_stream_id = "stargazers"
     replication_method = "FULL_TABLE"
     key_properties = ["user_id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "stargazers"
     headers = {'Accept': 'application/vnd.github.v3.star+json'}
 
@@ -959,6 +989,7 @@ class Repositories(FullTableStream):
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
     use_organization = True
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "orgs/{}/repos"
     children = ["repository_topics"]
     has_children = True
@@ -977,6 +1008,7 @@ class RepositoryTeams(FullTableStream):
     tap_stream_id = "repository_teams"
     replication_method = "FULL_TABLE"
     key_properties = ["_sdc_repository","id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "teams"
 
 class RepositoryTopics(FullTableStream):
@@ -1000,7 +1032,8 @@ class Deployments(FullTableStream):
     tap_stream_id = "deployments"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
-    path = "deployments?sort=created_at&direction=desc"
+    additional_filters = f"sort=created_at&direction=desc&per_page{PER_PAGE_NUMBER}"
+    path = "deployments"
     children = ["deployment_statuses"]
     has_children = True
 
@@ -1019,6 +1052,7 @@ class DeploymentStatuses(FullTableStream):
     replication_method = "FULL_TABLE"
     use_repository = True
     key_properties = ["deployment_id","id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "deployments/{}/statuses"
     id_keys = ["id"]
     inherit_parent_fields = [("deployment_id","id"),("_sdc_repository","_sdc_repository")]
@@ -1038,6 +1072,7 @@ class Workflows(FullTableStream):
     tap_stream_id = "workflows"
     replication_method = "FULL_TABLE"
     key_properties = ["id"]
+    additional_filters = f"per_page{PER_PAGE_NUMBER}"
     path = "actions/workflows"
     result_path = "workflows"
 
@@ -1052,7 +1087,7 @@ class WorkflowRuns(IncrementalStream):
     key_properties = ["id"]
     path = "actions/runs"
     result_path = "workflow_runs"
-    filter_param_custom = "created=>="
+    since_filter_param_custom = f"per_page={PER_PAGE_NUMBER}&created=>="
     children = ["workflow_run_pull_requests"]
     has_children = True
 
