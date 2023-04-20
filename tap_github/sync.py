@@ -5,6 +5,7 @@ from tap_github.streams import STREAMS
 
 LOGGER = singer.get_logger()
 STREAM_TO_SYNC_FOR_ORGS = ['teams', 'team_members', 'team_memberships', 'repositories', 'repository_topics']
+schemas_sent = []
 
 def get_selected_streams(catalog):
     '''
@@ -47,6 +48,7 @@ def get_ordered_stream_list(currently_syncing, streams_to_sync):
     """
     Get an ordered list of remaining streams to sync other streams followed by synced streams.
     """
+    LOGGER.info(f'Currently syncing stream: {currently_syncing}')
     stream_list = list(sorted(streams_to_sync))
     if currently_syncing in stream_list:
         index = stream_list.index(currently_syncing)
@@ -58,6 +60,7 @@ def get_ordered_repos(state, repositories):
     Get an ordered list of remaining repos to sync followed by synced repos.
     """
     syncing_repo = state.get("currently_syncing_repo")
+    LOGGER.info(f'Currently syncing repo from state: {syncing_repo}')
     if syncing_repo in repositories:
         index = repositories.index(syncing_repo)
         repositories = repositories[index:] + repositories[:index]
@@ -163,7 +166,9 @@ def write_schemas(stream_id, catalog, selected_streams):
     if stream_id in selected_streams:
         # Get catalog object for particular stream.
         stream = [cat for cat in catalog['streams'] if cat['tap_stream_id'] == stream_id ][0]
-        singer.write_schema(stream_id, stream['schema'], stream['key_properties'])
+        if stream_id not in schemas_sent:
+            singer.write_schema(stream_id, stream['schema'], stream['key_properties'])
+            schemas_sent.append(stream_id)
 
     for child in stream_obj.children:
         write_schemas(child, catalog, selected_streams)
