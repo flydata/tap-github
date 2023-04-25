@@ -700,7 +700,7 @@ class Commits(IncrementalStream):
     path = "commits"
     children= ["commit_users_emails", "commit_files", "commit_parents", "commit_pull_request"]
     has_children = True
-    since_filter_param = f"&per_page={PER_PAGE_NUMBER}"
+    since_filter_param = f"&per_page=30"
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
