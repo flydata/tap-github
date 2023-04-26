@@ -510,8 +510,8 @@ class IncrementalDateStream(Stream):
                                                                     stream_to_sync,
                                                                     selected_stream_ids,
                                                                     parent_record = record)
-                                # Write bookmark for incremental stream.
-                                self.write_bookmarks(self.tap_stream_id, selected_stream_ids, max_bookmark_value, repo_path, state)
+                                    # Write bookmark for incremental stream.
+                                    self.write_bookmarks(self.tap_stream_id, selected_stream_ids, max_bookmark_value, repo_path, state)
                             else:
                                 LOGGER.warning("Skipping this record for %s stream with %s = %s as it is missing replication key %s.",
                                             self.tap_stream_id, self.key_properties, record[self.key_properties], self.replication_keys)
@@ -647,7 +647,7 @@ class ReviewComments(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    additional_filters = f"sort=updated_at&direction=desc&per_page{PER_PAGE_NUMBER}"
+    additional_filters = f"sort=updated_at&direction=asc&per_page{PER_PAGE_NUMBER}"
     path = "pulls/{}/comments"
     use_repository = True
     id_keys = ['number']
@@ -691,7 +691,7 @@ class PullRequests(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    additional_filters = f"state=all&sort=updated&direction=desc&per_page{PER_PAGE_NUMBER}"
+    additional_filters = f"state=all&sort=updated&direction=asc&per_page{PER_PAGE_NUMBER}"
     path = "pulls"
     children = ['reviews', 'review_comments', 'pr_commits']
     has_children = True
@@ -892,7 +892,7 @@ class Comments(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    since_filter_param = f"&sort=updated&direction=desc&per_page={PER_PAGE_NUMBER}"
+    since_filter_param = f"&sort=updated&direction=asc&per_page={PER_PAGE_NUMBER}"
     path = "issues/comments"
 
 class Issues(IncrementalOrderedStream):
@@ -903,7 +903,7 @@ class Issues(IncrementalOrderedStream):
     replication_method = "INCREMENTAL"
     replication_keys = "updated_at"
     key_properties = ["id"]
-    since_filter_param = f"&state=all&sort=updated&direction=desc&per_page={PER_PAGE_NUMBER}"
+    since_filter_param = f"&state=all&sort=updated&direction=asc&per_page={PER_PAGE_NUMBER}"
     path = "issues"
     children = ["issue_assignees","issue_labels"]
     has_children = True
