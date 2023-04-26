@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import singer
 from singer import (metrics, bookmarks, metadata)
 
 LOGGER = singer.get_logger()
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 PER_PAGE_NUMBER = 100
+DATE_RANGE_WINDOW = 7
 
 def get_bookmark(state, repo, stream_name, bookmark_key, start_date, is_incremental = True):
     """
@@ -15,6 +16,18 @@ def get_bookmark(state, repo, stream_name, bookmark_key, start_date, is_incremen
         if repo_stream_dict:
             return repo_stream_dict.get(bookmark_key)
     return start_date
+
+def get_date_ranges(start_date, end_date, date_range_window=DATE_RANGE_WINDOW):
+    """
+    Return a list of date ranges to be used for the API calls.
+    """
+    start_date = datetime.strptime(start_date, DATE_FORMAT)
+    end_date = datetime.strptime(end_date, DATE_FORMAT)
+    while start_date < end_date:
+        temp_end_date=start_date + timedelta(days=date_range_window)
+        date_ranges=(start_date.strftime(DATE_FORMAT),temp_end_date.strftime(DATE_FORMAT))
+        start_date = temp_end_date
+        yield date_ranges
 
 def get_schema(catalog, stream_id):
     """
@@ -88,7 +101,7 @@ class Stream:
             query_string = '?since={}{}'.format(bookmark,self.since_filter_param)
         elif self.since_filter_param_custom:
             # Add additional custom filter for incremental streams
-            query_string = f'?{self.since_filter_param_custom}{bookmark}'
+            query_string = f'?{self.since_filter_param_custom}'.format(**bookmark)
         elif self.additional_filters:
             query_string = f'?{self.additional_filters}'
         else:
@@ -273,7 +286,8 @@ class FullTableStream(Stream):
                         repo_path,
                         start_date,
                         selected_stream_ids,
-                        stream_to_sync
+                        stream_to_sync,
+                        config,
                         ):
         """
         A common function sync full table streams.
@@ -336,7 +350,8 @@ class IncrementalStream(Stream):
                       repo_path,
                       start_date,
                       selected_stream_ids,
-                      stream_to_sync
+                      stream_to_sync,
+                      config,
                       ):
 
         """
@@ -406,14 +421,104 @@ class IncrementalStream(Stream):
                                                                 stream_to_sync,
                                                                 selected_stream_ids,
                                                                 parent_record = record)
-                            # Write bookmark for incremental stream.
-                            self.write_bookmarks(self.tap_stream_id, selected_stream_ids, max_bookmark_value, repo_path, state)
                         else:
                             LOGGER.warning("Skipping this record for %s stream with %s = %s as it is missing replication key %s.",
                                         self.tap_stream_id, self.key_properties, record[self.key_properties], self.replication_keys)
 
             # Write bookmark for incremental stream.
             self.write_bookmarks(self.tap_stream_id, selected_stream_ids, max_bookmark_value, repo_path, state)
+
+        return state
+    
+class IncrementalDateStream(Stream):
+    def sync_endpoint(self,
+                      client,
+                      state,
+                      catalog,
+                      repo_path,
+                      start_date,
+                      selected_stream_ids,
+                      stream_to_sync,
+                      config,
+                      ):
+
+        """
+        A common function sync incremental streams. Sync an incremental stream for which records are not
+        in descending order. For, incremental streams iterate all records, write only newly updated records and
+        write the latest bookmark value.
+        """
+
+        parent_bookmark_value = get_bookmark(state, repo_path, self.tap_stream_id, "since", start_date)
+        current_time = datetime.today().strftime(DATE_FORMAT)
+        min_bookmark_value = self.get_min_bookmark(self.tap_stream_id, selected_stream_ids, current_time, repo_path, start_date, state)
+
+        max_bookmark_value = min_bookmark_value
+        LOGGER.info(f'Starting stream with bookmark {min_bookmark_value} and current time {current_time}')
+        for start_date, end_date in get_date_ranges(min_bookmark_value, current_time, config.get('date_range_window', DATE_RANGE_WINDOW)):
+            # build full url
+            full_url = self.build_url(client.base_url, repo_path, {'from': start_date, 'until': end_date})
+
+            stream_catalog = get_schema(catalog, self.tap_stream_id)
+
+            with metrics.record_counter(self.tap_stream_id) as counter:
+                for response in client.authed_get_all_pages(
+                        self.tap_stream_id,
+                        full_url,
+                        self.headers,
+                        stream = self.tap_stream_id
+                ):
+                    records = response.json()
+                    if self.result_path: records = records.get(self.result_path,[])
+                    extraction_time = singer.utils.now()
+                    # Loop through all records
+                    for record in records:
+                        record['_sdc_repository'] = repo_path
+                        self.add_fields_at_1st_level(record = record, parent_record = None)
+
+                        with singer.Transformer() as transformer:
+                            if record.get(self.replication_keys):
+                                if record[self.replication_keys] >= max_bookmark_value:
+                                    # Update max_bookmark_value
+                                    max_bookmark_value = record[self.replication_keys]
+
+                                bookmark_dttm = record[self.replication_keys]
+
+                                # Keep only records whose bookmark is after the last_datetime
+                                if bookmark_dttm >= min_bookmark_value:
+                                    if self.tap_stream_id in selected_stream_ids and bookmark_dttm >= parent_bookmark_value:
+                                        rec = transformer.transform(record, stream_catalog['schema'], metadata=metadata.to_map(stream_catalog['metadata']))
+
+                                        singer.write_record(self.tap_stream_id, rec, time_extracted=extraction_time)
+                                        counter.increment()
+
+                                    for child in self.children:
+                                        if child in stream_to_sync:
+
+                                            parent_id = tuple(record.get(key) for key in STREAMS[child]().id_keys)
+                                            if STREAMS[child]().id_keys and not all(parent_id):
+                                                pass
+                                            else:
+                                                # Sync child stream, if it is selected or its nested child is selected.
+                                                self.get_child_records(client,
+                                                                    catalog,
+                                                                    child,
+                                                                    parent_id,
+                                                                    repo_path,
+                                                                    state,
+                                                                    start_date,
+                                                                    record.get(self.replication_keys),
+                                                                    stream_to_sync,
+                                                                    selected_stream_ids,
+                                                                    parent_record = record)
+                                # Write bookmark for incremental stream.
+                                self.write_bookmarks(self.tap_stream_id, selected_stream_ids, max_bookmark_value, repo_path, state)
+                            else:
+                                LOGGER.warning("Skipping this record for %s stream with %s = %s as it is missing replication key %s.",
+                                            self.tap_stream_id, self.key_properties, record[self.key_properties], self.replication_keys)
+
+                # Write bookmark for incremental stream.
+                self.write_bookmarks(self.tap_stream_id, selected_stream_ids, max_bookmark_value, repo_path, state)
+                singer.write_state(state) 
 
         return state
 
@@ -426,7 +531,8 @@ class IncrementalOrderedStream(Stream):
                       repo_path,
                       start_date,
                       selected_stream_ids,
-                      stream_to_sync
+                      stream_to_sync,
+                      config,
                       ):
         """
         A sync function for streams that have records in the descending order of replication key value. For such streams,
@@ -485,6 +591,7 @@ class IncrementalOrderedStream(Stream):
                         for child in self.children:
                             if child in stream_to_sync:
                                 parent_id = tuple(record.get(key) for key in STREAMS[child]().id_keys)
+                                LOGGER.info(f"Syncing child {child}")
 
                                 # Sync child stream, if it is selected or its nested child is selected.
                                 self.get_child_records(client,
@@ -689,7 +796,7 @@ class Teams(FullTableStream):
     has_children = True
     pk_child_fields = ['slug']
 
-class Commits(IncrementalStream):
+class Commits(IncrementalDateStream):
     '''
     https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
     '''
@@ -700,7 +807,7 @@ class Commits(IncrementalStream):
     path = "commits"
     children= ["commit_users_emails", "commit_files", "commit_parents", "commit_pull_request"]
     has_children = True
-    since_filter_param = f"&per_page=30"
+    since_filter_param_custom = "since={from}&until={until}&per_page=30"
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
@@ -1076,18 +1183,18 @@ class Workflows(FullTableStream):
     path = "actions/workflows"
     result_path = "workflows"
 
-class WorkflowRuns(IncrementalStream):
+class WorkflowRuns(IncrementalDateStream):
     '''
     https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     '''
     tap_stream_id = "workflow_runs"
     replication_method = "INCREMENTAL"
-    replication_keys = "updated_at"
+    replication_keys = "created_at"
     use_repository = True
     key_properties = ["id"]
     path = "actions/runs"
     result_path = "workflow_runs"
-    since_filter_param_custom = f"per_page={PER_PAGE_NUMBER}&created=>="
+    since_filter_param_custom = "per_page=100&created={from}..{until}"
     children = ["workflow_run_pull_requests"]
     has_children = True
 

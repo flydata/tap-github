@@ -206,7 +206,7 @@ def sync(client, config, state, catalog):
         for repo in get_ordered_repos(state, repositories):
             update_currently_syncing_repo(state, repo)
             LOGGER.info("Starting sync of repository: %s", repo)
-            do_sync(catalog, streams_to_sync_for_repos, selected_stream_ids, client, start_date, state, repo)
+            do_sync(catalog, streams_to_sync_for_repos, selected_stream_ids, client, start_date, state, repo, config)
 
             if client.not_accessible_repos:
                 # Give warning messages for a repo that is not accessible by a stream or is invalid.
@@ -215,14 +215,14 @@ def sync(client, config, state, catalog):
                 client.not_accessible_repos = set()
         update_currently_syncing_repo(state, None)
 
-def do_sync(catalog, streams_to_sync, selected_stream_ids, client, start_date, state, repo):
+def do_sync(catalog, streams_to_sync, selected_stream_ids, client, start_date, state, repo, config= {}):
     """
     Sync all other streams except teams, team_members and team_memberships for each repo.
     """
     currently_syncing = singer.get_currently_syncing(state)
     for stream_id in get_ordered_stream_list(currently_syncing, streams_to_sync):
         stream_obj = STREAMS[stream_id]()
-
+        LOGGER.info(f'Starting stream {stream_id} for {repo}.')
         # If it is a "sub_stream", it will be synced as part of the parent stream
         if stream_id in streams_to_sync and not stream_obj.parent:
             write_schemas(stream_id, catalog, selected_stream_ids)
@@ -234,7 +234,8 @@ def do_sync(catalog, streams_to_sync, selected_stream_ids, client, start_date, s
                                               repo_path = repo,
                                               start_date = start_date,
                                               selected_stream_ids = selected_stream_ids,
-                                              stream_to_sync = streams_to_sync
+                                              stream_to_sync = streams_to_sync,
+                                              config = config,
                                             )
 
             singer.write_state(state)
