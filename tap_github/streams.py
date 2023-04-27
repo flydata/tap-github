@@ -515,7 +515,7 @@ class IncrementalDateStream(Stream):
                             else:
                                 LOGGER.warning("Skipping this record for %s stream with %s = %s as it is missing replication key %s.",
                                             self.tap_stream_id, self.key_properties, record[self.key_properties], self.replication_keys)
-
+                if max_bookmark_value < start_date: max_bookmark_value = start_date
                 # Write bookmark for incremental stream.
                 self.write_bookmarks(self.tap_stream_id, selected_stream_ids, max_bookmark_value, repo_path, state)
                 singer.write_state(state) 
