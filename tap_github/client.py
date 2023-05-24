@@ -223,6 +223,7 @@ class GithubClient:
             # Fetch the next page if next found in the response.
             if 'next' in r.links:
                 url = r.links['next']['url']
+                LOGGER.info(f'Found a next link: {url}')
             else:
             # Break the loop if all pages are fetched.
                 break
