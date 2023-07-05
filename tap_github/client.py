@@ -219,12 +219,12 @@ class GithubClient:
             # Break the loop if all pages are fetched.
                 break
 
-    def verify_repo_access(self, url_for_repo, repo):
+    def verify_repo_access(self, url_for_repo, repo, should_skip_404 = True):
         """
         Call rest API to verify that the user has sufficient permissions to access this repository.
         """
         try:
-            self.authed_get("verifying repository access", url_for_repo)
+            self.authed_get("verifying repository access", url_for_repo, should_skip_404 = should_skip_404)
         except NotFoundException:
             # Throwing user-friendly error message as it checks token access
             message = "HTTP-error-code: 404, Error: Please check the repository name \'{}\' or you do not have sufficient permissions to access this repository.".format(repo)
@@ -242,7 +242,7 @@ class GithubClient:
             LOGGER.info("Verifying access of repository: %s", repo)
 
             # Verifying for Repo access
-            self.verify_repo_access(url_for_repo, repo)
+            self.verify_repo_access(url_for_repo, repo, False)
 
     def extract_orgs_from_config(self):
         """
